@@ -1,0 +1,54 @@
+{
+  "name": "@pyra-marketplace/pyra-sdk",
+  "version": "1.0.0",
+  "license": "MIT",
+  "files": [
+    "/dist"
+  ],
+  "types": "dist/cjs/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "scripts": {
+    "typechain:pyra-zone": "rimraf src/data-token/abi/typechain/* && typechain --target ethers-v5 --out-dir src/pyra-zone/abi/typechain './src/pyra-zone/abi/**/*.json'",
+    "build": "rimraf dist && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.json",
+    "build:cjs": "tsc -p tsconfig-cjs.json",
+    "format": "prettier --config .prettierrc . --write",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@lit-protocol/constants": "^2.2.61",
+    "@meteor-web3/connector": "^1.0.24",
+    "@pyra-marketplace/assets-sdk": "^1.0.0",
+    "axios": "^1.5.1",
+    "ethers": "^5.7.2",
+    "graphql": "16.6.0",
+    "graphql-request": "^6.1.0",
+    "moralis": "^2.23.1",
+    "nanoid": "4.0.0"
+  },
+  "devDependencies": {
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@typechain/ethers-v5": "^11.1.1",
+    "@types/chai": "^4.3.6",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.8.7",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "chai": "^4.3.8",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.28.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "husky": "^8.0.3",
+    "mocha": "^10.2.0",
+    "prettier": "3.0.3",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.3.1",
+    "typescript": "^5.2.2"
+  }
+}
