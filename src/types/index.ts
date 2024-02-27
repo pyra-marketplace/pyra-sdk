@@ -13,3 +13,7 @@ export interface ZoneAsset {
   expirations: BigNumberish[];
   totalValues: BigNumberish[];
 }
+
+export enum TradeType {
+  Buy
+}

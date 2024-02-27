@@ -4,8 +4,8 @@ import {
   SYSTEM_CALL,
   MeteorWalletProvider
 } from "@meteor-web3/connector";
-import { DataAssetParser } from "@pyra-marketplace/assets-sdk/data-asset";
-import { PyraZone } from "../../src/pyra-zone";
+import { ethers } from "ethers";
+import { PyraZone, PyraMarket, RevenuePool } from "../../src";
 import "./App.scss";
 import { ChainId } from "../../src/types";
 
@@ -20,11 +20,21 @@ const chainId = ChainId.PolygonMumbai;
 
 const postVersion = "0.0.1";
 
+let address: string;
+
+let assetId: string;
+
 let indexFileId: string;
 
 let tierkey: string;
 
 let keyId: string;
+
+let shareContractAddress: string;
+
+let revenuePoolContractAddress: string;
+
+let rewards: number;
 
 function App() {
   const [pkh, setPkh] = React.useState("");
@@ -33,7 +43,8 @@ function App() {
     const connectWalletRes = await connector.connectWallet({
       provider: (window as any).ethereum
     });
-    console.log(connectWalletRes.address);
+    address = connectWalletRes.address;
+    console.log(address);
     const createCapabilityRes = await connector.runOS({
       method: SYSTEM_CALL.createCapability,
       params: {
@@ -45,20 +56,21 @@ function App() {
     return createCapabilityRes.pkh;
   };
 
-  /*** wirte operation */
+  /*** PyraZone wirte operation */
   const createPyraZone = async () => {
     const pyraZone = new PyraZone({
       chainId,
       connector
     });
 
-    const res = await pyraZone.createPyraZone();
-    console.log(res);
+    assetId = await pyraZone.createPyraZone();
+    console.log(assetId);
   };
 
   const createTierkey = async () => {
     const pyraZone = new PyraZone({
       chainId,
+      assetId,
       connector
     });
 
@@ -69,6 +81,7 @@ function App() {
   const createTierkeyFile = async () => {
     const pyraZone = new PyraZone({
       chainId,
+      assetId,
       connector
     });
 
@@ -99,34 +112,26 @@ function App() {
     console.log(res);
   };
 
-  const buyFile = async () => {
-    const dataAssetParser = new DataAssetParser(connector);
-    const dataAsset = await dataAssetParser.parse(indexFileId);
-
+  const buyTierkey = async () => {
     const pyraZone = new PyraZone({
-      chainId: dataAsset.chainId as ChainId,
-      fileId: dataAsset.fileOrFolderId,
-      assetId: dataAsset.assetId,
+      chainId,
+      assetId,
       connector
     });
 
-    keyId = await pyraZone.buyTierkey();
+    keyId = await pyraZone.buyTierkey(tierkey);
     console.log("DataToken collected, keyId:", keyId);
     return keyId;
   };
 
   const isBought = async () => {
-    const dataAssetParser = new DataAssetParser(connector);
-    const dataAsset = await dataAssetParser.parse(indexFileId);
-
     const pyraZone = new PyraZone({
-      chainId: dataAsset.chainId as ChainId,
-      fileId: dataAsset.fileOrFolderId,
-      assetId: dataAsset.assetId,
+      chainId,
+      assetId,
       connector
     });
 
-    const res = await pyraZone!.isAccessible();
+    const res = await pyraZone!.isAccessible({ tierkey, account: address });
     console.log(res);
 
     return res;
@@ -156,100 +161,123 @@ function App() {
     }
   };
 
-  const sellFile = async () => {
-    const dataAssetParser = new DataAssetParser(connector);
-    const dataAsset = await dataAssetParser.parse(indexFileId);
-
+  const sellTierkey = async () => {
     const pyraZone = new PyraZone({
-      chainId: dataAsset.chainId as ChainId,
-      fileId: dataAsset.fileOrFolderId,
-      assetId: dataAsset.assetId,
+      chainId,
+      assetId,
       connector
     });
 
-    await pyraZone!.sellTierkey(keyId);
+    await pyraZone.sellTierkey({ tierkey, keyId });
     console.log("pyraZone sold");
   };
 
-  /*** wirte operation */
+  /*** PyraZone wirte operation */
 
-  /*** read operation */
-  // const loadCreatedTokenFiles = async () => {
-  //   const dataToken = new DataToken({
-  //     connector
-  //   });
-  //   const res = await dataToken.loadCreatedTokenFiles(address);
-  //   console.log(res);
-  // };
+  /*** PyraZone read operation */
+  /*** PyraZone read operation */
 
-  // const loadCollectedTokenFiles = async () => {
-  //   const dataToken = new DataToken({
-  //     connector
-  //   });
-  //   const res = await dataToken.loadCollectedTokenFiles(address);
-  //   console.log(res);
-  // };
+  /*** PyraMarket wirte operation */
+  const createShare = async () => {
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.createShare({
+      shareName: "Test Share",
+      shareSymbol: "TS",
+      feePoint: 100
+    });
+    shareContractAddress = res.shareContractAddress;
+    revenuePoolContractAddress = res.revenuePoolContractAddress;
+    console.log({ shareContractAddress, revenuePoolContractAddress });
+    return { shareContractAddress, revenuePoolContractAddress };
+  };
 
-  // const loadDatatokens = async () => {
-  //   const dataTokenIds = [
-  //     "0xd5a9fA9B780a92091B789e57B794c1dd86F3D134",
-  //     "0xc4bc152f88b23c5cBD26d7447706C7A55bB953c0",
-  //     "0xee81E5318d2CBEF8d08080dA6a931d9f502208A9"
-  //   ];
+  const buyShares = async () => {
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    await pyraMarket.buyShares({
+      creator: address,
+      amount: ethers.utils.parseEther("10")
+    });
+    console.log("Buy shares successfully");
+  };
 
-  //   const res = await loadDataTokens(dataTokenIds);
+  const sellShares = async () => {
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    await pyraMarket.sellShares({
+      creator: address,
+      amount: ethers.utils.parseEther("1")
+    });
+    console.log("Sell shares successfully");
+  };
+  /*** PyraMarket wirte operation */
 
-  //   console.log(res);
-  // };
+  /*** PyraMarket read operation */
+  const getShareInfo = async () => {
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.getShareInfo(address);
+    console.log(res);
+  };
+  /*** PyraMarket read operation */
 
-  // const isDatatokenCollectedBy = async () => {
-  //   const dataTokenId = "0x50eD54ae8700f23E24cB6316ddE8869978AB4d5f";
-  //   const res = await connector.runOS({
-  //     method: SYSTEM_CALL.isDatatokenCollectedBy,
-  //     params: { dataTokenId, collector: address }
-  //   });
-  //   await isDatatokenCollectedBy({ dataTokenId, collector: address });
-  //   console.log(res);
-  // };
+  /*** RevenuePool write operation */
+  const stake = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      shareContractAddress,
+      revenuePoolContractAddress,
+      connector
+    });
+    await revenuePool.stake(ethers.utils.parseEther("1"));
+    console.log("Stake successfully");
+  };
 
-  // const loadDataUnions = async () => {
-  //   const res = await connector.runOS({
-  //     method: SYSTEM_CALL.loadDataUnions,
-  //     params: [
-  //       "0x6eeef1ffc904e0d3f20e6039dcf742cc1e9e2909e40f6a4aa5941f8426be086b"
-  //     ]
-  //   });
-  //   console.log(res);
-  // };
+  const unStake = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      shareContractAddress,
+      revenuePoolContractAddress,
+      connector
+    });
+    await revenuePool.unStake(ethers.utils.parseEther("1"));
+    console.log("unStake successfully");
+  };
 
-  // const isDataUnionCollectedBy = async () => {
-  //   const dataUnionId =
-  //     "0x6eeef1ffc904e0d3f20e6039dcf742cc1e9e2909e40f6a4aa5941f8426be086b";
-  //   const res = await connector.runOS({
-  //     method: SYSTEM_CALL.isDataUnionCollectedBy,
-  //     params: {
-  //       dataUnionId,
-  //       collector: address
-  //     }
-  //   });
-  //   console.log(res);
-  // };
+  const claim = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      shareContractAddress,
+      revenuePoolContractAddress,
+      connector
+    });
+    rewards = await revenuePool.claim();
+    console.log("Claim successfully");
+  };
 
-  // const isDataUnionSubscribedBy = async () => {
-  //   const dataUnionId =
-  //     "0x6eeef1ffc904e0d3f20e6039dcf742cc1e9e2909e40f6a4aa5941f8426be086b";
-  //   const res = await connector.runOS({
-  //     method: SYSTEM_CALL.isDataUnionSubscribedBy,
-  //     params: {
-  //       dataUnionId,
-  //       subscriber: address,
-  //       timestamp: 0
-  //     }
-  //   });
-  //   console.log(res);
-  // };
+  const distribute = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      shareContractAddress,
+      revenuePoolContractAddress,
+      connector
+    });
+    await revenuePool.distribute(rewards);
+    console.log("Distribute successfully");
+  };
+  /*** RevenuePool write operation */
 
-  /*** read operation */
+  /*** RevenuePool read operation */
+  /*** RevenuePool read operation */
 
   return (
     <div className='App'>
@@ -259,12 +287,21 @@ function App() {
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
       <button onClick={() => createTierkeyFile()}>createTierkeyFile</button>
-      <button onClick={() => buyFile()}>collectFile</button>
-      <button onClick={() => isBought()}>isCollected</button>
-      <button onClick={() => sellFile()}>isFileUnlocked</button>
+      <button onClick={() => buyTierkey()}>buyTierkey</button>
+      <button onClick={() => isBought()}>isBought</button>
       <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
+      <button onClick={() => sellTierkey()}>sellTierkey</button>
       <br />
+      <button onClick={() => createShare()}>createShare</button>
+      <button onClick={() => buyShares()}>buyShares</button>
+      <button onClick={() => sellShares()}>sellShares</button>
+      <button onClick={() => getShareInfo()}>getShareInfo</button>
+      <br />
+      <button onClick={() => stake()}>stake</button>
+      <button onClick={() => unStake()}>unStake</button>
+      <button onClick={() => claim()}>claim</button>
+      <button onClick={() => distribute()}>distribute</button>
       <br />
       {/* <button onClick={() => loadCreatedTokenFiles()}>
         loadCreatedTokenFiles

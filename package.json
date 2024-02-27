@@ -9,7 +9,7 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
-    "typechain:pyra-zone": "rimraf src/data-token/abi/typechain/* && typechain --target ethers-v5 --out-dir src/pyra-zone/abi/typechain './src/pyra-zone/abi/**/*.json'",
+    "typechain": "rimraf src/abi/typechain/* && typechain --target ethers-v5 --out-dir src/abi/typechain './src/abi/**/*.json'",
     "build": "rimraf dist && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig-cjs.json",

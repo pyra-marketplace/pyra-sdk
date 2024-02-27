@@ -1,4 +1,4 @@
-import { ChainId } from "../../types";
+import { ChainId } from "../types";
 
 export const DEPLOYED_ADDRESSES = {
   [ChainId.PolygonMumbai]: {

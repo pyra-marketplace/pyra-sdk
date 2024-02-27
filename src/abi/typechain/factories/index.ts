@@ -3,3 +3,5 @@
 /* eslint-disable */
 export { PyraMarket__factory } from "./PyraMarket__factory";
 export { PyraZone__factory } from "./PyraZone__factory";
+export { RevenuePool__factory } from "./RevenuePool__factory";
+export { Share__factory } from "./Share__factory";

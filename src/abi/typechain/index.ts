@@ -3,6 +3,10 @@
 /* eslint-disable */
 export type { PyraMarket } from "./PyraMarket";
 export type { PyraZone } from "./PyraZone";
+export type { RevenuePool } from "./RevenuePool";
+export type { Share } from "./Share";
 export * as factories from "./factories";
 export { PyraMarket__factory } from "./factories/PyraMarket__factory";
 export { PyraZone__factory } from "./factories/PyraZone__factory";
+export { RevenuePool__factory } from "./factories/RevenuePool__factory";
+export { Share__factory } from "./factories/Share__factory";

@@ -13,36 +13,41 @@ import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import { ChainId, ZoneAsset } from "../types";
+import { ChainId, ZoneAsset } from "./types";
 import { PyraZone__factory } from "./abi/typechain";
 import { DEPLOYED_ADDRESSES } from "./addresses";
 import { TradeType } from "./types";
 
 export class PyraZone extends DataAssetBase {
+  pyraZone;
+
   constructor({
     chainId,
     connector,
-    fileId,
     assetId
   }: {
     chainId?: ChainId;
     connector: Connector;
-    fileId?: string;
     assetId?: string;
   }) {
+    const assetContract = DEPLOYED_ADDRESSES[chainId!]?.PyraZone;
     super({
       chainId,
       connector,
-      assetContract: DEPLOYED_ADDRESSES[chainId!]?.PyraZone,
-      fileOrFolderId: fileId,
+      assetContract,
       assetId
     });
+    if (!this.signer) {
+      throw new Error("Signer not found, please collect wallet");
+    }
+    this.pyraZone = PyraZone__factory.connect(assetContract, this.signer);
   }
 
   public async createPyraZone() {
     if (this.assetId) {
       return this.assetId;
     }
+
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
@@ -68,21 +73,24 @@ export class PyraZone extends DataAssetBase {
   }
 
   public async createTierkey(expiration: BigNumberish) {
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
       );
     }
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
     }
-    const pyraZone = PyraZone__factory.connect(this.assetContract, this.signer);
-    const tx = await pyraZone.createTierkey(this.assetId, expiration);
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const tx = await this.pyraZone.createTierkey(this.assetId, expiration);
     const receipt = await tx.wait();
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "TierkeyCreated"
@@ -94,29 +102,30 @@ export class PyraZone extends DataAssetBase {
     return tierkey;
   }
 
-  public async buyTierkey() {
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
+  public async buyTierkey(tierkey: BigNumberish) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
       );
     }
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
     }
-    const tier =
-      this.monetizationProvider?.dependencies?.[0]?.attached?.["tierkey"];
-    const pyraZone = PyraZone__factory.connect(this.assetContract, this.signer);
-    const totalPrice = pyraZone.getTierkeyPriceAfterFee(
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const totalPrice = this.pyraZone.getTierkeyPriceAfterFee(
       this.assetId,
-      tier,
+      tierkey,
       TradeType.Buy
     );
-    const tx = await pyraZone.buyTierkey(this.assetId, tier, {
+    const tx = await this.pyraZone.buyTierkey(this.assetId, tierkey, {
       value: totalPrice
     });
     const receipt = await tx.wait();
@@ -130,25 +139,87 @@ export class PyraZone extends DataAssetBase {
     return keyId;
   }
 
-  public async sellTierkey(keyId: BigNumberish) {
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
+  public async sellTierkey({
+    tierkey,
+    keyId
+  }: {
+    tierkey: BigNumberish;
+    keyId: BigNumberish;
+  }) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
       );
     }
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
     }
-    const tier =
-      this.monetizationProvider?.dependencies?.[0]?.attached?.["tierkey"];
-    const pyraZone = PyraZone__factory.connect(this.assetContract, this.signer);
-    const tx = await pyraZone.sellTierkey(this.assetId, tier, keyId);
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const tx = await this.pyraZone.sellTierkey(this.assetId, tierkey, keyId);
     await tx.wait();
+  }
+
+  public async getZoneAsset() {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const zoneAsset: ZoneAsset = await this.pyraZone.getZoneAsset(this.assetId);
+    return zoneAsset;
+  }
+
+  public async isAccessible({
+    tierkey,
+    account
+  }: {
+    tierkey: BigNumberish;
+    account: string;
+  }) {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const res = await this.pyraZone.isAccessible(
+      this.assetId,
+      tierkey,
+      account
+    );
+
+    return res;
   }
 
   async applyConditionsToFile({
@@ -220,115 +291,6 @@ export class PyraZone extends DataAssetBase {
     });
 
     const res = await this.applyFileConditions(fileId);
-
-    return res;
-  }
-
-  // async createTokenFile({
-  //   modelId,
-  //   fileName,
-  //   fileContent,
-  //   timestamp,
-  //   withSig
-  // }: {
-  //   modelId: string;
-  //   fileName?: string;
-  //   fileContent: FileContent;
-  //   timestamp?: number;
-  //   withSig?: boolean;
-  // }) {
-  //   const createIndexFileRes = await this.connector.runOS({
-  //     method: SYSTEM_CALL.createIndexFile,
-  //     params: {
-  //       modelId,
-  //       fileName,
-  //       fileContent
-  //     }
-  //   });
-
-  //   this.fileOrFolderId = createIndexFileRes.fileContent.file.fileId;
-
-  //   await this.publish(withSig);
-
-  //   const applyConditionsToFileRes =
-  //     await this.applyConditionsToFile(timestamp);
-
-  //   return applyConditionsToFileRes;
-  // }
-
-  // async monetizeFile({
-  //   actionsConfig,
-  //   withSig
-  // }: {
-  //   actionsConfig: {
-  //     collectAction?: {
-  //       currency: string;
-  //       amount: BigNumberish;
-  //       totalSupply?: BigNumberish;
-  //     };
-  //   };
-  //   withSig?: boolean;
-  // }) {
-  //   if (!this.fileOrFolderId) {
-  //     throw new Error("File Id cannot be empty");
-  //   }
-
-  //   const res = await this.connector.runOS({
-  //     method: SYSTEM_CALL.loadFile,
-  //     params: this.fileOrFolderId
-  //   });
-
-  //   await this.publish({
-  //     resourceId:
-  //       "test-resource-id" ?? res.fileContent.file?.contentType?.resourceId,
-  //     actionsConfig,
-  //     withSig
-  //   });
-
-  //   const applyConditionsToFileRes = await this.applyConditionsToFile();
-
-  //   return applyConditionsToFileRes;
-  // }
-
-  public async getZoneAsset() {
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-    if (!this.assetId) {
-      throw new Error(
-        "AssetId cannot be empty, please call createAssetHandler first"
-      );
-    }
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
-    }
-    const pyraZone = PyraZone__factory.connect(this.assetContract, this.signer);
-    const zoneAsset: ZoneAsset = await pyraZone.getZoneAsset(this.assetId);
-    return zoneAsset;
-  }
-
-  public async isAccessible() {
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-    if (!this.assetId) {
-      throw new Error(
-        "AssetId cannot be empty, please call createAssetHandler first"
-      );
-    }
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
-    }
-
-    const pyraZone = PyraZone__factory.connect(this.assetContract, this.signer);
-    const tier =
-      this.monetizationProvider?.dependencies?.[0]?.attached?.["tierkey"];
-    const account = await this.signer.getAddress();
-    const res = await pyraZone.isAccessible(this.assetId, tier, account);
 
     return res;
   }
