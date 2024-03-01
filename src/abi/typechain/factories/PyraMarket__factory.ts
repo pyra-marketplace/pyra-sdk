@@ -292,6 +292,37 @@ const _abi = [
   },
   {
     type: "event",
+    name: "ShareCreated",
+    inputs: [
+      {
+        name: "owner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "share",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "revenuePool",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "feePoint",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "SharesBought",
     inputs: [
       {

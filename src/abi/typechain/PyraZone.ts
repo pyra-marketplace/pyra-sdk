@@ -134,6 +134,7 @@ export interface PyraZoneInterface extends utils.Interface {
     "addActions((bytes32,address[],bytes[]))": FunctionFragment;
     "addActionsWithSig((bytes32,address[],bytes[]),(address,uint8,bytes32,bytes32,uint256))": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
+    "assetIdByPublisher(address)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "buyTierkey(bytes32,uint256)": FunctionFragment;
     "createTierkey(bytes32,uint256)": FunctionFragment;
@@ -179,6 +180,7 @@ export interface PyraZoneInterface extends utils.Interface {
       | "addActions"
       | "addActionsWithSig"
       | "approve"
+      | "assetIdByPublisher"
       | "balanceOf"
       | "buyTierkey"
       | "createTierkey"
@@ -257,6 +259,10 @@ export interface PyraZoneInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "assetIdByPublisher",
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
@@ -399,6 +405,10 @@ export interface PyraZoneInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "assetIdByPublisher",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "buyTierkey", data: BytesLike): Result;
   decodeFunctionResult(
@@ -735,6 +745,11 @@ export interface PyraZone extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    assetIdByPublisher(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     balanceOf(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     buyTierkey(
@@ -903,11 +918,11 @@ export interface PyraZone extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[void]>;
   };
 
   BASE_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
@@ -947,6 +962,8 @@ export interface PyraZone extends BaseContract {
     tokenId: BigNumberish,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
+
+  assetIdByPublisher(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1104,11 +1121,11 @@ export interface PyraZone extends BaseContract {
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   transferFrom(
-    from: string,
-    to: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
+    arg0: string,
+    arg1: string,
+    arg2: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<void>;
 
   callStatic: {
     BASE_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1148,6 +1165,11 @@ export interface PyraZone extends BaseContract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    assetIdByPublisher(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1308,9 +1330,9 @@ export interface PyraZone extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -1493,6 +1515,11 @@ export interface PyraZone extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    assetIdByPublisher(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     buyTierkey(
@@ -1643,10 +1670,10 @@ export interface PyraZone extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
@@ -1689,6 +1716,11 @@ export interface PyraZone extends BaseContract {
       to: string,
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    assetIdByPublisher(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     balanceOf(
@@ -1852,10 +1884,10 @@ export interface PyraZone extends BaseContract {
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string }
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

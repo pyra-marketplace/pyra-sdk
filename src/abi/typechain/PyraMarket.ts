@@ -175,13 +175,28 @@ export interface PyraMarketInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "sellShares", data: BytesLike): Result;
 
   events: {
+    "ShareCreated(address,address,address,uint256)": EventFragment;
     "SharesBought(address,uint256,uint256)": EventFragment;
     "SharesSold(address,uint256,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ShareCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SharesBought"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SharesSold"): EventFragment;
 }
+
+export interface ShareCreatedEventObject {
+  owner: string;
+  share: string;
+  revenuePool: string;
+  feePoint: BigNumber;
+}
+export type ShareCreatedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  ShareCreatedEventObject
+>;
+
+export type ShareCreatedEventFilter = TypedEventFilter<ShareCreatedEvent>;
 
 export interface SharesBoughtEventObject {
   trader: string;
@@ -424,6 +439,19 @@ export interface PyraMarket extends BaseContract {
   };
 
   filters: {
+    "ShareCreated(address,address,address,uint256)"(
+      owner?: string | null,
+      share?: string | null,
+      revenuePool?: string | null,
+      feePoint?: null
+    ): ShareCreatedEventFilter;
+    ShareCreated(
+      owner?: string | null,
+      share?: string | null,
+      revenuePool?: string | null,
+      feePoint?: null
+    ): ShareCreatedEventFilter;
+
     "SharesBought(address,uint256,uint256)"(
       trader?: string | null,
       amount?: null,

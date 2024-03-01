@@ -304,6 +304,25 @@ const _abi = [
   },
   {
     type: "function",
+    name: "assetIdByPublisher",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "balanceOf",
     inputs: [
       {
@@ -1077,23 +1096,23 @@ const _abi = [
     name: "transferFrom",
     inputs: [
       {
-        name: "from",
+        name: "",
         type: "address",
         internalType: "address",
       },
       {
-        name: "to",
+        name: "",
         type: "address",
         internalType: "address",
       },
       {
-        name: "tokenId",
+        name: "",
         type: "uint256",
         internalType: "uint256",
       },
     ],
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "pure",
   },
   {
     type: "event",
@@ -1641,6 +1660,16 @@ const _abi = [
   {
     type: "error",
     name: "TierkeyNotOwned",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZoneAlreadyPublished",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZoneNotTransferable",
     inputs: [],
   },
 ] as const;

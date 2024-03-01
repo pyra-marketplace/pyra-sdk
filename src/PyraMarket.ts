@@ -61,15 +61,63 @@ export class PyraMarket extends DataAssetBase {
       feePoint
     );
     const receipt = await tx.wait();
+    console.log(receipt);
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "ShareCreated"
     );
+    console.log(targetEvents);
     if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
       throw new Error("Filter ShareCreated event failed");
     }
     const shareContractAddress: string = targetEvents[0].args[1];
     const revenuePoolContractAddress: string = targetEvents[0].args[2];
     return { shareContractAddress, revenuePoolContractAddress };
+  }
+
+  public async getBuyPrice({
+    creator,
+    amount
+  }: {
+    creator: string;
+    amount: BigNumberish;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const totalPrice = await this.pyraMarket.getBuyPrice(creator, amount);
+
+    return totalPrice;
+  }
+
+  public async getSellPrice({
+    creator,
+    amount
+  }: {
+    creator: string;
+    amount: BigNumberish;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const totalPrice = await this.pyraMarket.getSellPrice(creator, amount);
+
+    return totalPrice;
   }
 
   public async buyShares({
@@ -135,6 +183,12 @@ export class PyraMarket extends DataAssetBase {
     });
 
     const shareInfo = await this.pyraMarket.getShareInfo(creator);
-    return shareInfo;
+
+    return {
+      revenuePool: shareInfo.revenuePool,
+      share: shareInfo.share,
+      feePoint: shareInfo.feePoint,
+      totalValue: shareInfo.totalValue
+    };
   }
 }

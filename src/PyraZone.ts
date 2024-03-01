@@ -68,7 +68,6 @@ export class PyraZone extends DataAssetBase {
       actions,
       actionInitDatas
     };
-
     return await this.createAssetHandler(publishParams);
   }
 
@@ -98,11 +97,10 @@ export class PyraZone extends DataAssetBase {
     if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
       throw new Error("Filter TierkeyCreated event failed");
     }
-    const tierkey: string = targetEvents[0].args[2];
-    return tierkey;
+    return targetEvents[0].args[1];
   }
 
-  public async buyTierkey(tierkey: BigNumberish) {
+  public async buyTierkey(tier: BigNumberish) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -120,12 +118,13 @@ export class PyraZone extends DataAssetBase {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const totalPrice = this.pyraZone.getTierkeyPriceAfterFee(
+    const totalPrice = await this.pyraZone.getTierkeyPriceAfterFee(
       this.assetId,
-      tierkey,
+      tier,
       TradeType.Buy
     );
-    const tx = await this.pyraZone.buyTierkey(this.assetId, tierkey, {
+
+    const tx = await this.pyraZone.buyTierkey(this.assetId, tier, {
       value: totalPrice
     });
     const receipt = await tx.wait();
@@ -140,10 +139,10 @@ export class PyraZone extends DataAssetBase {
   }
 
   public async sellTierkey({
-    tierkey,
+    tier,
     keyId
   }: {
-    tierkey: BigNumberish;
+    tier: BigNumberish;
     keyId: BigNumberish;
   }) {
     if (!this.assetId) {
@@ -163,7 +162,7 @@ export class PyraZone extends DataAssetBase {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const tx = await this.pyraZone.sellTierkey(this.assetId, tierkey, keyId);
+    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId);
     await tx.wait();
   }
 
@@ -190,10 +189,10 @@ export class PyraZone extends DataAssetBase {
   }
 
   public async isAccessible({
-    tierkey,
+    tier,
     account
   }: {
-    tierkey: BigNumberish;
+    tier: BigNumberish;
     account: string;
   }) {
     if (!this.assetId) {
@@ -213,11 +212,7 @@ export class PyraZone extends DataAssetBase {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const res = await this.pyraZone.isAccessible(
-      this.assetId,
-      tierkey,
-      account
-    );
+    const res = await this.pyraZone.isAccessible(this.assetId, tier, account);
 
     return res;
   }
@@ -295,16 +290,16 @@ export class PyraZone extends DataAssetBase {
     return res;
   }
 
-  public async createTierkeyFile({
+  public async createTierFile({
     modelId,
     fileName,
     fileContent,
-    tierkey
+    tier
   }: {
     modelId: string;
     fileName?: string;
     fileContent: FileContent;
-    tierkey: string;
+    tier: string;
   }) {
     if (!this.assetId) {
       throw new Error(
@@ -368,20 +363,14 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tierkey
+        tier
       }
     });
 
     return applyConditionsToFileRes;
   }
 
-  public async addTierKeyFile({
-    fileId,
-    tierkey
-  }: {
-    fileId: string;
-    tierkey: string;
-  }) {
+  public async addTierFile({ fileId, tier }: { fileId: string; tier: string }) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -406,7 +395,7 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tierkey
+        tier
       }
     });
 

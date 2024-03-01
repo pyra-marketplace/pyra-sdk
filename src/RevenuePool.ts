@@ -7,7 +7,7 @@ import { Share__factory, RevenuePool__factory } from "./abi/typechain";
 export class RevenuePool {
   share;
   revenuePool;
-  shareContractAddress: string;
+  shareContractAddress?: string;
   revenuePoolContractAddress: string;
   chainId?: ChainId;
   connector: Connector;
@@ -20,7 +20,7 @@ export class RevenuePool {
     connector
   }: {
     chainId?: ChainId;
-    shareContractAddress: string;
+    shareContractAddress?: string;
     revenuePoolContractAddress: string;
     connector: Connector;
   }) {
@@ -31,7 +31,9 @@ export class RevenuePool {
     this.signer = ethersProvider.getSigner();
     this.chainId = chainId;
     this.connector = connector;
-    this.share = Share__factory.connect(shareContractAddress, this.signer);
+    if (shareContractAddress) {
+      this.share = Share__factory.connect(shareContractAddress, this.signer);
+    }
     this.revenuePool = RevenuePool__factory.connect(
       revenuePoolContractAddress,
       this.signer
@@ -43,6 +45,10 @@ export class RevenuePool {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
       );
+    }
+
+    if (!this.share) {
+      throw new Error("Share contract address cannot be empty");
     }
 
     await this.connector.getProvider().request({
@@ -101,6 +107,25 @@ export class RevenuePool {
     return rewards;
   }
 
+  public async getStakingRewards() {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const rewards = await this.revenuePool.getStakingRewards(
+      this.connector.address
+    );
+
+    return rewards;
+  }
+
   public async distribute(rewards: BigNumberish) {
     if (!this.chainId) {
       throw new Error(
@@ -124,5 +149,70 @@ export class RevenuePool {
     }
     const revenue = targetEvents[0].args[1];
     return revenue;
+  }
+
+  public async getRevenuePoolBalance() {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    if (!this.signer) {
+      throw new Error("Signer not found, please collect wallet");
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const provider = this.signer.provider!;
+    const balance = await provider.getBalance(this.revenuePoolContractAddress);
+
+    return balance;
+  }
+
+  public async getTotalSupply() {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const totalSupply = await this.revenuePool.totalSupply();
+
+    return totalSupply;
+  }
+
+  public async calculateRevenue() {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    if (!this.signer) {
+      throw new Error("Signer not found, please collect wallet");
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const stakingRewards = await this.getStakingRewards();
+
+    const totalSupply = await this.getTotalSupply();
+
+    const provider = this.signer.provider!;
+    const balance = await provider.getBalance(this.revenuePoolContractAddress);
+
+    return stakingRewards.div(totalSupply).mul(balance);
   }
 }

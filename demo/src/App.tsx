@@ -22,11 +22,12 @@ const postVersion = "0.0.1";
 
 let address: string;
 
-let assetId: string;
+let assetId: string =
+  "0xbdb6f0feba303db172b557712cbf27a633c3c6b3cb686b25dac121e9681cfd55";
 
 let indexFileId: string;
 
-let tierkey: string;
+let tier: string;
 
 let keyId: string;
 
@@ -74,11 +75,11 @@ function App() {
       connector
     });
 
-    tierkey = await pyraZone.createTierkey(10);
-    console.log(tierkey);
+    tier = await pyraZone.createTierkey(10);
+    console.log(tier);
   };
 
-  const createTierkeyFile = async () => {
+  const createTierFile = async () => {
     const pyraZone = new PyraZone({
       chainId,
       assetId,
@@ -87,7 +88,7 @@ function App() {
 
     const date = new Date().toISOString();
 
-    const res = await pyraZone.createTierkeyFile({
+    const res = await pyraZone.createTierFile({
       modelId: postModelId,
       fileName: "create a file",
       fileContent: {
@@ -105,11 +106,10 @@ function App() {
           videos: false
         })
       },
-      tierkey
+      tier
     });
     indexFileId = res.fileContent.file.fileId;
-    console.log("DataToken collected, keyId:", keyId);
-    console.log(res);
+    console.log(indexFileId);
   };
 
   const buyTierkey = async () => {
@@ -119,19 +119,19 @@ function App() {
       connector
     });
 
-    keyId = await pyraZone.buyTierkey(tierkey);
-    console.log("DataToken collected, keyId:", keyId);
+    keyId = await pyraZone.buyTierkey(tier);
+    console.log(keyId);
     return keyId;
   };
 
-  const isBought = async () => {
+  const isAccessible = async () => {
     const pyraZone = new PyraZone({
       chainId,
       assetId,
       connector
     });
 
-    const res = await pyraZone!.isAccessible({ tierkey, account: address });
+    const res = await pyraZone.isAccessible({ tier, account: address });
     console.log(res);
 
     return res;
@@ -167,9 +167,8 @@ function App() {
       assetId,
       connector
     });
-
-    await pyraZone.sellTierkey({ tierkey, keyId });
-    console.log("pyraZone sold");
+    await pyraZone.sellTierkey({ tier, keyId });
+    console.log("Sold tierkey successfully");
   };
 
   /*** PyraZone wirte operation */
@@ -194,6 +193,18 @@ function App() {
     return { shareContractAddress, revenuePoolContractAddress };
   };
 
+  const getBuyPrice = async () => {
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.getBuyPrice({
+      creator: address,
+      amount: ethers.utils.parseEther("1")
+    });
+    console.log(ethers.utils.formatEther(res));
+  };
+
   const buyShares = async () => {
     const pyraMarket = new PyraMarket({
       chainId,
@@ -201,9 +212,21 @@ function App() {
     });
     await pyraMarket.buyShares({
       creator: address,
-      amount: ethers.utils.parseEther("10")
+      amount: ethers.utils.parseEther("1")
     });
-    console.log("Buy shares successfully");
+    console.log("Bought shares successfully");
+  };
+
+  const getSellPrice = async () => {
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.getSellPrice({
+      creator: address,
+      amount: ethers.utils.parseEther("1")
+    });
+    console.log(ethers.utils.formatEther(res));
   };
 
   const sellShares = async () => {
@@ -215,7 +238,7 @@ function App() {
       creator: address,
       amount: ethers.utils.parseEther("1")
     });
-    console.log("Sell shares successfully");
+    console.log("Sold shares successfully");
   };
   /*** PyraMarket wirte operation */
 
@@ -226,6 +249,8 @@ function App() {
       connector
     });
     const res = await pyraMarket.getShareInfo(address);
+    shareContractAddress = res.share;
+    revenuePoolContractAddress = res.revenuePool;
     console.log(res);
   };
   /*** PyraMarket read operation */
@@ -239,7 +264,7 @@ function App() {
       connector
     });
     await revenuePool.stake(ethers.utils.parseEther("1"));
-    console.log("Stake successfully");
+    console.log("Staked successfully");
   };
 
   const unStake = async () => {
@@ -250,7 +275,7 @@ function App() {
       connector
     });
     await revenuePool.unStake(ethers.utils.parseEther("1"));
-    console.log("unStake successfully");
+    console.log("unStaked successfully");
   };
 
   const claim = async () => {
@@ -261,7 +286,7 @@ function App() {
       connector
     });
     rewards = await revenuePool.claim();
-    console.log("Claim successfully");
+    console.log("Claimed successfully, rewards: ", rewards);
   };
 
   const distribute = async () => {
@@ -272,11 +297,50 @@ function App() {
       connector
     });
     await revenuePool.distribute(rewards);
-    console.log("Distribute successfully");
+    console.log("Distributed successfully");
   };
   /*** RevenuePool write operation */
 
   /*** RevenuePool read operation */
+  const getTotalSupply = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      revenuePoolContractAddress,
+      connector
+    });
+    const totalSupply = await revenuePool.getTotalSupply();
+    console.log(ethers.utils.formatEther(totalSupply));
+  };
+
+  const getRevenuePoolBalance = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      revenuePoolContractAddress,
+      connector
+    });
+    const revenuePoolBalance = await revenuePool.getRevenuePoolBalance();
+    console.log(ethers.utils.formatEther(revenuePoolBalance));
+  };
+
+  const getStakingRewards = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      revenuePoolContractAddress,
+      connector
+    });
+    const rewards = await revenuePool.getStakingRewards();
+    console.log(ethers.utils.formatEther(rewards));
+  };
+
+  const calculateRevenue = async () => {
+    const revenuePool = new RevenuePool({
+      chainId,
+      revenuePoolContractAddress,
+      connector
+    });
+    const revenue = await revenuePool.calculateRevenue();
+    console.log(ethers.utils.formatEther(revenue));
+  };
   /*** RevenuePool read operation */
 
   return (
@@ -286,22 +350,30 @@ function App() {
       <hr />
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
-      <button onClick={() => createTierkeyFile()}>createTierkeyFile</button>
+      <button onClick={() => createTierFile()}>createTierkeyFile</button>
       <button onClick={() => buyTierkey()}>buyTierkey</button>
-      <button onClick={() => isBought()}>isBought</button>
+      <button onClick={() => isAccessible()}>isBought</button>
       <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
       <button onClick={() => sellTierkey()}>sellTierkey</button>
       <br />
       <button onClick={() => createShare()}>createShare</button>
       <button onClick={() => buyShares()}>buyShares</button>
+      <button onClick={() => getBuyPrice()}>getBuyPrice</button>
       <button onClick={() => sellShares()}>sellShares</button>
+      <button onClick={() => getSellPrice()}>getSellPrice</button>
       <button onClick={() => getShareInfo()}>getShareInfo</button>
       <br />
       <button onClick={() => stake()}>stake</button>
       <button onClick={() => unStake()}>unStake</button>
       <button onClick={() => claim()}>claim</button>
       <button onClick={() => distribute()}>distribute</button>
+      <button onClick={() => getTotalSupply()}>getTotalSupply</button>
+      <button onClick={() => getRevenuePoolBalance()}>
+        getRevenuePoolBalance
+      </button>
+      <button onClick={() => getStakingRewards()}>getStakingRewards</button>
+      <button onClick={() => calculateRevenue()}>calculateRevenue</button>
       <br />
       {/* <button onClick={() => loadCreatedTokenFiles()}>
         loadCreatedTokenFiles
