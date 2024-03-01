@@ -38,7 +38,7 @@ export class PyraZone extends DataAssetBase {
       assetId
     });
     if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
+      throw new Error("Signer not found, please connect wallet");
     }
     this.pyraZone = PyraZone__factory.connect(assetContract, this.signer);
   }
@@ -97,7 +97,10 @@ export class PyraZone extends DataAssetBase {
     if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
       throw new Error("Filter TierkeyCreated event failed");
     }
-    return targetEvents[0].args[1];
+    return {
+      tier: targetEvents[0].args[1],
+      tierkeyId: targetEvents[0].args[2]
+    };
   }
 
   public async buyTierkey(tier: BigNumberish) {
@@ -294,12 +297,12 @@ export class PyraZone extends DataAssetBase {
     modelId,
     fileName,
     fileContent,
-    tier
+    tierkeyId
   }: {
     modelId: string;
     fileName?: string;
     fileContent: FileContent;
-    tier: string;
+    tierkeyId: string;
   }) {
     if (!this.assetId) {
       throw new Error(
@@ -316,6 +319,9 @@ export class PyraZone extends DataAssetBase {
         "AssetContract cannot be empty, please pass in through constructor"
       );
     }
+    if (!tierkeyId) {
+      throw new Error("TierkeyId cannot be empty");
+    }
 
     const folders = await this.connector.runOS({
       method: SYSTEM_CALL.loadFolderTrees
@@ -323,9 +329,12 @@ export class PyraZone extends DataAssetBase {
 
     const folder = Object.values(folders).find(
       (folder) =>
-        folder.options?.signal?.type === SignalType.asset &&
-        folder.options?.signal?.id === this.assetId
+        folder.options?.signals?.find(
+          (signal) =>
+            signal.type === SignalType.asset && signal.id === this.assetId
+        )
     );
+    console.log(folder);
 
     let folderId = folder?.folderId;
     if (!folder) {
@@ -333,11 +342,15 @@ export class PyraZone extends DataAssetBase {
         method: SYSTEM_CALL.createFolder,
         params: {
           folderName: `${SignalType[SignalType.asset]}:${this.assetId}`,
-          folderType: FolderType.PublicFolderType,
+          folderType: FolderType.PrivateFolderType,
           signals: [
             {
               type: SignalType.asset,
               id: this.assetId
+            },
+            {
+              type: SignalType.asset,
+              id: tierkeyId
             }
           ]
         }
@@ -354,7 +367,6 @@ export class PyraZone extends DataAssetBase {
         folderId
       }
     });
-
     const applyConditionsToFileRes = await this.applyConditionsToFile({
       fileId: res.fileContent.file.fileId,
       linkedAsset: {
@@ -363,14 +375,20 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tier
+        tierkeyId
       }
     });
 
     return applyConditionsToFileRes;
   }
 
-  public async addTierFile({ fileId, tier }: { fileId: string; tier: string }) {
+  public async addTierFile({
+    fileId,
+    tierkeyId
+  }: {
+    fileId: string;
+    tierkeyId: string;
+  }) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -386,6 +404,9 @@ export class PyraZone extends DataAssetBase {
         "AssetContract cannot be empty, please pass in through constructor"
       );
     }
+    if (!tierkeyId) {
+      throw new Error("TierkeyId cannot be empty");
+    }
 
     const applyConditionsToFileRes = await this.applyConditionsToFile({
       fileId,
@@ -395,7 +416,7 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tier
+        tierkeyId
       }
     });
 
@@ -405,8 +426,10 @@ export class PyraZone extends DataAssetBase {
 
     const folder = Object.values(folders).find(
       (folder) =>
-        folder.options?.signal?.type === SignalType.asset &&
-        folder.options?.signal?.id === this.assetId
+        folder.options?.signals?.find(
+          (signal) =>
+            signal.type === SignalType.asset && signal.id === this.assetId
+        )
     );
 
     let folderId = folder?.folderId;
@@ -415,11 +438,15 @@ export class PyraZone extends DataAssetBase {
         method: SYSTEM_CALL.createFolder,
         params: {
           folderName: `${SignalType[SignalType.asset]}:${this.assetId}`,
-          folderType: FolderType.PublicFolderType,
+          folderType: FolderType.PrivateFolderType,
           signals: [
             {
               type: SignalType.asset,
               id: this.assetId
+            },
+            {
+              type: SignalType.asset,
+              id: tierkeyId
             }
           ]
         }
@@ -440,12 +467,12 @@ export class PyraZone extends DataAssetBase {
 
   public async loadFilesInPyraZone(pyraZoneId: string) {
     if (!pyraZoneId) {
-      throw new Error("groupId cannot be empty");
+      throw new Error("PyraZoneId cannot be empty");
     }
 
     const res = await this.connector.runOS({
       method: SYSTEM_CALL.loadFoldersBy,
-      params: { signal: { type: SignalType.asset, id: pyraZoneId } }
+      params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
     });
 
     return Object.assign(
@@ -454,19 +481,19 @@ export class PyraZone extends DataAssetBase {
     );
   }
 
-  // public async loadFilesByTierkey(tierkey: string) {
-  //   if (!tierkey) {
-  //     throw new Error("Tierkey cannot be empty");
-  //   }
+  public async loadFilesByTierkey(tierkeyId: string) {
+    if (!tierkeyId) {
+      throw new Error("TierkeyId cannot be empty");
+    }
 
-  //   const res = await this.connector.runOS({
-  //     method: SYSTEM_CALL.loadFoldersBy,
-  //     params: { attached: { tierkey } }
-  //   });
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFoldersBy,
+      params: { signals: [{ type: SignalType.asset, id: tierkeyId }] }
+    });
 
-  //   return Object.assign(
-  //     {},
-  //     ...Object.values(res).map((item) => item.mirrorRecord)
-  //   );
-  // }
+    return Object.assign(
+      {},
+      ...Object.values(res).map((item) => item.mirrorRecord)
+    );
+  }
 }

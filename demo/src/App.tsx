@@ -23,11 +23,13 @@ const postVersion = "0.0.1";
 let address: string;
 
 let assetId: string =
-  "0xbdb6f0feba303db172b557712cbf27a633c3c6b3cb686b25dac121e9681cfd55";
+  "0x320f9fe5586b1fbfca478eb9823c07f2408691bed5b0e86caee5ed7f066f3960";
 
 let indexFileId: string;
 
 let tier: string;
+
+let tierkeyId: string;
 
 let keyId: string;
 
@@ -75,8 +77,10 @@ function App() {
       connector
     });
 
-    tier = await pyraZone.createTierkey(10);
-    console.log(tier);
+    const res = await pyraZone.createTierkey(10);
+    tier = res.tier;
+    tierkeyId = res.tierkeyId;
+    console.log(res);
   };
 
   const createTierFile = async () => {
@@ -106,7 +110,7 @@ function App() {
           videos: false
         })
       },
-      tier
+      tierkeyId
     });
     indexFileId = res.fileContent.file.fileId;
     console.log(indexFileId);
@@ -174,6 +178,23 @@ function App() {
   /*** PyraZone wirte operation */
 
   /*** PyraZone read operation */
+  const loadFilesInPyraZone = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const res = await pyraZone.loadFilesInPyraZone(assetId);
+    console.log(res);
+  };
+
+  const loadFilesByTierkey = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const res = await pyraZone.loadFilesByTierkey(tierkeyId);
+    console.log(res);
+  };
   /*** PyraZone read operation */
 
   /*** PyraMarket wirte operation */
@@ -356,6 +377,8 @@ function App() {
       <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
       <button onClick={() => sellTierkey()}>sellTierkey</button>
+      <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
+      <button onClick={() => loadFilesByTierkey()}>loadFilesByTierkey</button>
       <br />
       <button onClick={() => createShare()}>createShare</button>
       <button onClick={() => buyShares()}>buyShares</button>
