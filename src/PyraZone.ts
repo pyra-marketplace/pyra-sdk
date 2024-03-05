@@ -334,7 +334,6 @@ export class PyraZone extends DataAssetBase {
             signal.type === SignalType.asset && signal.id === this.assetId
         )
     );
-    console.log(folder);
 
     let folderId = folder?.folderId;
     if (!folder) {
@@ -429,6 +428,10 @@ export class PyraZone extends DataAssetBase {
         folder.options?.signals?.find(
           (signal) =>
             signal.type === SignalType.asset && signal.id === this.assetId
+        ) &&
+        folder.options?.signals?.find(
+          (signal) =>
+            signal.type === SignalType.asset && signal.id === tierkeyId
         )
     );
 
@@ -477,7 +480,14 @@ export class PyraZone extends DataAssetBase {
 
     return Object.assign(
       {},
-      ...Object.values(res).map((item) => item.mirrorRecord)
+      ...Object.values(res).map((item) =>
+        Object.fromEntries(
+          Object.values(item.mirrorRecord).map((mirror) => [
+            mirror.mirrorId,
+            mirror.mirrorFile
+          ])
+        )
+      )
     );
   }
 
@@ -493,7 +503,14 @@ export class PyraZone extends DataAssetBase {
 
     return Object.assign(
       {},
-      ...Object.values(res).map((item) => item.mirrorRecord)
+      ...Object.values(res).map((item) =>
+        Object.fromEntries(
+          Object.values(item.mirrorRecord).map((mirror) => [
+            mirror.mirrorId,
+            mirror.mirrorFile
+          ])
+        )
+      )
     );
   }
 }

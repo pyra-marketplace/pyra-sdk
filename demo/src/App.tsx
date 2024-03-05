@@ -27,9 +27,9 @@ let assetId: string =
 
 let indexFileId: string;
 
-let tier: string;
+let tier: string = "5";
 
-let tierkeyId: string;
+let tierkeyId: string = "0x206EF12377aC715528eC5C496Bf230887DA49772";
 
 let keyId: string;
 
