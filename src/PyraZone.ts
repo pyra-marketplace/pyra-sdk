@@ -101,8 +101,8 @@ export class PyraZone extends DataAssetBase {
       throw new Error("Filter TierkeyCreated event failed");
     }
     return {
-      tier: targetEvents[0].args[1],
-      tierkeyId: targetEvents[0].args[2]
+      tier: targetEvents[0].args[1] as number,
+      tierkey: targetEvents[0].args[2] as string
     };
   }
 
