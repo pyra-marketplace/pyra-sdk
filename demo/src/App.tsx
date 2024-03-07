@@ -213,6 +213,9 @@ function App() {
     if(!address) {
       throw new Error("Not connect wallet")
     }
+    if(!assetId) {
+      throw new Error("Not create pyra zone")
+    }
     const pyraZone = new PyraZone({
       chainId,
       connector
