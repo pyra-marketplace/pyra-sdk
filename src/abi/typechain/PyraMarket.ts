@@ -27,7 +27,7 @@ import type {
   OnEvent,
 } from "./common";
 
-export declare namespace PyraMarket {
+export declare namespace IPyraMarket {
   export type ShareInfoStruct = {
     share: string;
     revenuePool: string;
@@ -51,6 +51,10 @@ export interface PyraMarketInterface extends utils.Interface {
     "PROTOCOL_TREASURY()": FunctionFragment;
     "buyShares(address,uint256)": FunctionFragment;
     "createShare(string,string,uint256)": FunctionFragment;
+    "emitRewardsClaimed(address,uint256)": FunctionFragment;
+    "emitRewardsDistributed(address,uint256,uint256)": FunctionFragment;
+    "emitSharesStaked(address,uint256)": FunctionFragment;
+    "emitSharesUnstaked(address,uint256)": FunctionFragment;
     "getBuyPrice(address,uint256)": FunctionFragment;
     "getBuyPriceAfterFee(address,uint256)": FunctionFragment;
     "getPrice(uint256,uint256)": FunctionFragment;
@@ -68,6 +72,10 @@ export interface PyraMarketInterface extends utils.Interface {
       | "PROTOCOL_TREASURY"
       | "buyShares"
       | "createShare"
+      | "emitRewardsClaimed"
+      | "emitRewardsDistributed"
+      | "emitSharesStaked"
+      | "emitSharesUnstaked"
       | "getBuyPrice"
       | "getBuyPriceAfterFee"
       | "getPrice"
@@ -100,6 +108,22 @@ export interface PyraMarketInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "createShare",
     values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "emitRewardsClaimed",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "emitRewardsDistributed",
+    values: [string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "emitSharesStaked",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "emitSharesUnstaked",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getBuyPrice",
@@ -152,6 +176,22 @@ export interface PyraMarketInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "emitRewardsClaimed",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "emitRewardsDistributed",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "emitSharesStaked",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "emitSharesUnstaked",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getBuyPrice",
     data: BytesLike
   ): Result;
@@ -175,52 +215,120 @@ export interface PyraMarketInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "sellShares", data: BytesLike): Result;
 
   events: {
-    "ShareCreated(address,address,address,uint256)": EventFragment;
-    "SharesBought(address,uint256,uint256)": EventFragment;
-    "SharesSold(address,uint256,uint256)": EventFragment;
+    "RewardsClaimed(address,address,address,uint256)": EventFragment;
+    "RewardsDistributed(address,address,address,uint256,uint256)": EventFragment;
+    "ShareCreated(address,address,address,string,string,uint256)": EventFragment;
+    "SharesBought(address,address,uint256,uint256,uint256)": EventFragment;
+    "SharesSold(address,address,uint256,uint256,uint256)": EventFragment;
+    "SharesStaked(address,address,address,uint256)": EventFragment;
+    "SharesUnstaked(address,address,address,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "RewardsClaimed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RewardsDistributed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ShareCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SharesBought"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SharesSold"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SharesStaked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SharesUnstaked"): EventFragment;
 }
 
+export interface RewardsClaimedEventObject {
+  creator: string;
+  share: string;
+  shareholder: string;
+  rewardsAmount: BigNumber;
+}
+export type RewardsClaimedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  RewardsClaimedEventObject
+>;
+
+export type RewardsClaimedEventFilter = TypedEventFilter<RewardsClaimedEvent>;
+
+export interface RewardsDistributedEventObject {
+  creator: string;
+  share: string;
+  shareholder: string;
+  rewardsAmount: BigNumber;
+  revenue: BigNumber;
+}
+export type RewardsDistributedEvent = TypedEvent<
+  [string, string, string, BigNumber, BigNumber],
+  RewardsDistributedEventObject
+>;
+
+export type RewardsDistributedEventFilter =
+  TypedEventFilter<RewardsDistributedEvent>;
+
 export interface ShareCreatedEventObject {
-  owner: string;
+  creator: string;
   share: string;
   revenuePool: string;
+  shareName: string;
+  shareSymbol: string;
   feePoint: BigNumber;
 }
 export type ShareCreatedEvent = TypedEvent<
-  [string, string, string, BigNumber],
+  [string, string, string, string, string, BigNumber],
   ShareCreatedEventObject
 >;
 
 export type ShareCreatedEventFilter = TypedEventFilter<ShareCreatedEvent>;
 
 export interface SharesBoughtEventObject {
+  creator: string;
   trader: string;
+  buyAt: BigNumber;
   amount: BigNumber;
   price: BigNumber;
 }
 export type SharesBoughtEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
+  [string, string, BigNumber, BigNumber, BigNumber],
   SharesBoughtEventObject
 >;
 
 export type SharesBoughtEventFilter = TypedEventFilter<SharesBoughtEvent>;
 
 export interface SharesSoldEventObject {
+  creator: string;
   trader: string;
+  sellAt: BigNumber;
   amount: BigNumber;
   price: BigNumber;
 }
 export type SharesSoldEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
+  [string, string, BigNumber, BigNumber, BigNumber],
   SharesSoldEventObject
 >;
 
 export type SharesSoldEventFilter = TypedEventFilter<SharesSoldEvent>;
+
+export interface SharesStakedEventObject {
+  creator: string;
+  share: string;
+  shareholder: string;
+  sharesAmount: BigNumber;
+}
+export type SharesStakedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  SharesStakedEventObject
+>;
+
+export type SharesStakedEventFilter = TypedEventFilter<SharesStakedEvent>;
+
+export interface SharesUnstakedEventObject {
+  creator: string;
+  share: string;
+  shareholder: string;
+  sharesAmount: BigNumber;
+}
+export type SharesUnstakedEvent = TypedEvent<
+  [string, string, string, BigNumber],
+  SharesUnstakedEventObject
+>;
+
+export type SharesUnstakedEventFilter = TypedEventFilter<SharesUnstakedEvent>;
 
 export interface PyraMarket extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -258,7 +366,7 @@ export interface PyraMarket extends BaseContract {
     PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<[string]>;
 
     buyShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
@@ -267,6 +375,31 @@ export interface PyraMarket extends BaseContract {
       shareName: string,
       shareSymbol: string,
       feePoint: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    emitRewardsClaimed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    emitRewardsDistributed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      revenueAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    emitSharesStaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    emitSharesUnstaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -301,12 +434,12 @@ export interface PyraMarket extends BaseContract {
     ): Promise<[BigNumber]>;
 
     getShareInfo(
-      person: string,
+      creator: string,
       overrides?: CallOverrides
-    ): Promise<[PyraMarket.ShareInfoStructOutput]>;
+    ): Promise<[IPyraMarket.ShareInfoStructOutput]>;
 
     sellShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
@@ -321,7 +454,7 @@ export interface PyraMarket extends BaseContract {
   PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<string>;
 
   buyShares(
-    person: string,
+    creator: string,
     amount: BigNumberish,
     overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
@@ -330,6 +463,31 @@ export interface PyraMarket extends BaseContract {
     shareName: string,
     shareSymbol: string,
     feePoint: BigNumberish,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  emitRewardsClaimed(
+    shareholder: string,
+    rewardsAmount: BigNumberish,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  emitRewardsDistributed(
+    shareholder: string,
+    rewardsAmount: BigNumberish,
+    revenueAmount: BigNumberish,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  emitSharesStaked(
+    shareholder: string,
+    sharesAmount: BigNumberish,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  emitSharesUnstaked(
+    shareholder: string,
+    sharesAmount: BigNumberish,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -364,12 +522,12 @@ export interface PyraMarket extends BaseContract {
   ): Promise<BigNumber>;
 
   getShareInfo(
-    person: string,
+    creator: string,
     overrides?: CallOverrides
-  ): Promise<PyraMarket.ShareInfoStructOutput>;
+  ): Promise<IPyraMarket.ShareInfoStructOutput>;
 
   sellShares(
-    person: string,
+    creator: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
@@ -384,7 +542,7 @@ export interface PyraMarket extends BaseContract {
     PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<string>;
 
     buyShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -393,6 +551,31 @@ export interface PyraMarket extends BaseContract {
       shareName: string,
       shareSymbol: string,
       feePoint: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    emitRewardsClaimed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    emitRewardsDistributed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      revenueAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    emitSharesStaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    emitSharesUnstaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -427,52 +610,118 @@ export interface PyraMarket extends BaseContract {
     ): Promise<BigNumber>;
 
     getShareInfo(
-      person: string,
+      creator: string,
       overrides?: CallOverrides
-    ): Promise<PyraMarket.ShareInfoStructOutput>;
+    ): Promise<IPyraMarket.ShareInfoStructOutput>;
 
     sellShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
 
   filters: {
-    "ShareCreated(address,address,address,uint256)"(
-      owner?: string | null,
+    "RewardsClaimed(address,address,address,uint256)"(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      rewardsAmount?: null
+    ): RewardsClaimedEventFilter;
+    RewardsClaimed(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      rewardsAmount?: null
+    ): RewardsClaimedEventFilter;
+
+    "RewardsDistributed(address,address,address,uint256,uint256)"(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      rewardsAmount?: null,
+      revenue?: null
+    ): RewardsDistributedEventFilter;
+    RewardsDistributed(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      rewardsAmount?: null,
+      revenue?: null
+    ): RewardsDistributedEventFilter;
+
+    "ShareCreated(address,address,address,string,string,uint256)"(
+      creator?: string | null,
       share?: string | null,
       revenuePool?: string | null,
+      shareName?: null,
+      shareSymbol?: null,
       feePoint?: null
     ): ShareCreatedEventFilter;
     ShareCreated(
-      owner?: string | null,
+      creator?: string | null,
       share?: string | null,
       revenuePool?: string | null,
+      shareName?: null,
+      shareSymbol?: null,
       feePoint?: null
     ): ShareCreatedEventFilter;
 
-    "SharesBought(address,uint256,uint256)"(
+    "SharesBought(address,address,uint256,uint256,uint256)"(
+      creator?: string | null,
       trader?: string | null,
+      buyAt?: null,
       amount?: null,
       price?: null
     ): SharesBoughtEventFilter;
     SharesBought(
+      creator?: string | null,
       trader?: string | null,
+      buyAt?: null,
       amount?: null,
       price?: null
     ): SharesBoughtEventFilter;
 
-    "SharesSold(address,uint256,uint256)"(
+    "SharesSold(address,address,uint256,uint256,uint256)"(
+      creator?: string | null,
       trader?: string | null,
+      sellAt?: null,
       amount?: null,
       price?: null
     ): SharesSoldEventFilter;
     SharesSold(
+      creator?: string | null,
       trader?: string | null,
+      sellAt?: null,
       amount?: null,
       price?: null
     ): SharesSoldEventFilter;
+
+    "SharesStaked(address,address,address,uint256)"(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      sharesAmount?: null
+    ): SharesStakedEventFilter;
+    SharesStaked(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      sharesAmount?: null
+    ): SharesStakedEventFilter;
+
+    "SharesUnstaked(address,address,address,uint256)"(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      sharesAmount?: null
+    ): SharesUnstakedEventFilter;
+    SharesUnstaked(
+      creator?: string | null,
+      share?: string | null,
+      shareholder?: string | null,
+      sharesAmount?: null
+    ): SharesUnstakedEventFilter;
   };
 
   estimateGas: {
@@ -485,7 +734,7 @@ export interface PyraMarket extends BaseContract {
     PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<BigNumber>;
 
     buyShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
@@ -494,6 +743,31 @@ export interface PyraMarket extends BaseContract {
       shareName: string,
       shareSymbol: string,
       feePoint: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    emitRewardsClaimed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    emitRewardsDistributed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      revenueAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    emitSharesStaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    emitSharesUnstaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -527,10 +801,13 @@ export interface PyraMarket extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getShareInfo(person: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getShareInfo(
+      creator: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     sellShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
@@ -548,7 +825,7 @@ export interface PyraMarket extends BaseContract {
     PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     buyShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
@@ -557,6 +834,31 @@ export interface PyraMarket extends BaseContract {
       shareName: string,
       shareSymbol: string,
       feePoint: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    emitRewardsClaimed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    emitRewardsDistributed(
+      shareholder: string,
+      rewardsAmount: BigNumberish,
+      revenueAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    emitSharesStaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    emitSharesUnstaked(
+      shareholder: string,
+      sharesAmount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -591,12 +893,12 @@ export interface PyraMarket extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getShareInfo(
-      person: string,
+      creator: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     sellShares(
-      person: string,
+      creator: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;

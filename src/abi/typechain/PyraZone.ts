@@ -147,7 +147,7 @@ export interface PyraZoneInterface extends utils.Interface {
     "getTierkeyPrice(bytes32,uint256,uint8)": FunctionFragment;
     "getTierkeyPriceAfterFee(bytes32,uint256,uint8)": FunctionFragment;
     "getZoneAsset(bytes32)": FunctionFragment;
-    "isAccessible(bytes32,uint256,address)": FunctionFragment;
+    "isAccessible(bytes32,address,uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "isTierkeyExpired(bytes32,uint256,uint256)": FunctionFragment;
     "liquidateTierkey(bytes32,uint256,uint256)": FunctionFragment;
@@ -305,7 +305,7 @@ export interface PyraZoneInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isAccessible",
-    values: [BytesLike, BigNumberish, string]
+    values: [BytesLike, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -513,14 +513,14 @@ export interface PyraZoneInterface extends utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "AssetActed(bytes32,address,address[],bytes[],bytes[])": EventFragment;
+    "AssetActed(bytes32,address,uint256,address[],bytes[],bytes[])": EventFragment;
     "AssetActionsAdded(bytes32,address[],bytes[])": EventFragment;
-    "AssetPublished(bytes32,address,uint256,bytes,address[],bytes[])": EventFragment;
+    "AssetPublished(bytes32,address,uint256,uint256,bytes,address[],bytes[])": EventFragment;
     "EIP712DomainChanged()": EventFragment;
-    "TierkeyBought(bytes32,uint256,uint256,address,uint256)": EventFragment;
+    "TierkeyBought(bytes32,uint256,uint256,uint256,address,uint256)": EventFragment;
     "TierkeyCreated(bytes32,uint256,address,uint256)": EventFragment;
-    "TierkeyLiquidated(bytes32,uint256,uint256,address)": EventFragment;
-    "TierkeySold(bytes32,uint256,uint256,address,uint256,uint256)": EventFragment;
+    "TierkeyLiquidated(bytes32,uint256,uint256,uint256,address,uint256)": EventFragment;
+    "TierkeySold(bytes32,uint256,uint256,uint256,address,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
@@ -564,12 +564,13 @@ export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
 export interface AssetActedEventObject {
   assetId: string;
   actor: string;
+  actAt: BigNumber;
   actions: string[];
   actionProcessDatas: string[];
   actionReturnDatas: string[];
 }
 export type AssetActedEvent = TypedEvent<
-  [string, string, string[], string[], string[]],
+  [string, string, BigNumber, string[], string[], string[]],
   AssetActedEventObject
 >;
 
@@ -592,12 +593,13 @@ export interface AssetPublishedEventObject {
   assetId: string;
   publisher: string;
   publicationId: BigNumber;
+  publishAt: BigNumber;
   data: string;
   actions: string[];
   actionInitDatas: string[];
 }
 export type AssetPublishedEvent = TypedEvent<
-  [string, string, BigNumber, string, string[], string[]],
+  [string, string, BigNumber, BigNumber, string, string[], string[]],
   AssetPublishedEventObject
 >;
 
@@ -616,11 +618,12 @@ export interface TierkeyBoughtEventObject {
   assetId: string;
   tier: BigNumber;
   keyId: BigNumber;
+  buyAt: BigNumber;
   trader: string;
   keyPrice: BigNumber;
 }
 export type TierkeyBoughtEvent = TypedEvent<
-  [string, BigNumber, BigNumber, string, BigNumber],
+  [string, BigNumber, BigNumber, BigNumber, string, BigNumber],
   TierkeyBoughtEventObject
 >;
 
@@ -643,10 +646,12 @@ export interface TierkeyLiquidatedEventObject {
   assetId: string;
   tier: BigNumber;
   keyId: BigNumber;
+  liquidateAt: BigNumber;
   liquidator: string;
+  keyPrice: BigNumber;
 }
 export type TierkeyLiquidatedEvent = TypedEvent<
-  [string, BigNumber, BigNumber, string],
+  [string, BigNumber, BigNumber, BigNumber, string, BigNumber],
   TierkeyLiquidatedEventObject
 >;
 
@@ -657,12 +662,13 @@ export interface TierkeySoldEventObject {
   assetId: string;
   tier: BigNumber;
   keyId: BigNumber;
+  sellAt: BigNumber;
   trader: string;
   keyPrice: BigNumber;
   depreciatedKeyPrice: BigNumber;
 }
 export type TierkeySoldEvent = TypedEvent<
-  [string, BigNumber, BigNumber, string, BigNumber, BigNumber],
+  [string, BigNumber, BigNumber, BigNumber, string, BigNumber, BigNumber],
   TierkeySoldEventObject
 >;
 
@@ -821,8 +827,8 @@ export interface PyraZone extends BaseContract {
 
     isAccessible(
       assetId: BytesLike,
-      tier: BigNumberish,
       account: string,
+      tier: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -1030,8 +1036,8 @@ export interface PyraZone extends BaseContract {
 
   isAccessible(
     assetId: BytesLike,
-    tier: BigNumberish,
     account: string,
+    tier: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -1239,8 +1245,8 @@ export interface PyraZone extends BaseContract {
 
     isAccessible(
       assetId: BytesLike,
-      tier: BigNumberish,
       account: string,
+      tier: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1360,9 +1366,10 @@ export interface PyraZone extends BaseContract {
       approved?: null
     ): ApprovalForAllEventFilter;
 
-    "AssetActed(bytes32,address,address[],bytes[],bytes[])"(
+    "AssetActed(bytes32,address,uint256,address[],bytes[],bytes[])"(
       assetId?: BytesLike | null,
       actor?: string | null,
+      actAt?: null,
       actions?: null,
       actionProcessDatas?: null,
       actionReturnDatas?: null
@@ -1370,6 +1377,7 @@ export interface PyraZone extends BaseContract {
     AssetActed(
       assetId?: BytesLike | null,
       actor?: string | null,
+      actAt?: null,
       actions?: null,
       actionProcessDatas?: null,
       actionReturnDatas?: null
@@ -1386,10 +1394,11 @@ export interface PyraZone extends BaseContract {
       actionInitDatas?: null
     ): AssetActionsAddedEventFilter;
 
-    "AssetPublished(bytes32,address,uint256,bytes,address[],bytes[])"(
+    "AssetPublished(bytes32,address,uint256,uint256,bytes,address[],bytes[])"(
       assetId?: BytesLike | null,
       publisher?: string | null,
       publicationId?: BigNumberish | null,
+      publishAt?: null,
       data?: null,
       actions?: null,
       actionInitDatas?: null
@@ -1398,6 +1407,7 @@ export interface PyraZone extends BaseContract {
       assetId?: BytesLike | null,
       publisher?: string | null,
       publicationId?: BigNumberish | null,
+      publishAt?: null,
       data?: null,
       actions?: null,
       actionInitDatas?: null
@@ -1406,10 +1416,11 @@ export interface PyraZone extends BaseContract {
     "EIP712DomainChanged()"(): EIP712DomainChangedEventFilter;
     EIP712DomainChanged(): EIP712DomainChangedEventFilter;
 
-    "TierkeyBought(bytes32,uint256,uint256,address,uint256)"(
+    "TierkeyBought(bytes32,uint256,uint256,uint256,address,uint256)"(
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
       keyId?: BigNumberish | null,
+      buyAt?: null,
       trader?: null,
       keyPrice?: null
     ): TierkeyBoughtEventFilter;
@@ -1417,6 +1428,7 @@ export interface PyraZone extends BaseContract {
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
       keyId?: BigNumberish | null,
+      buyAt?: null,
       trader?: null,
       keyPrice?: null
     ): TierkeyBoughtEventFilter;
@@ -1434,23 +1446,28 @@ export interface PyraZone extends BaseContract {
       expiration?: null
     ): TierkeyCreatedEventFilter;
 
-    "TierkeyLiquidated(bytes32,uint256,uint256,address)"(
+    "TierkeyLiquidated(bytes32,uint256,uint256,uint256,address,uint256)"(
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
       keyId?: BigNumberish | null,
-      liquidator?: null
+      liquidateAt?: null,
+      liquidator?: null,
+      keyPrice?: null
     ): TierkeyLiquidatedEventFilter;
     TierkeyLiquidated(
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
       keyId?: BigNumberish | null,
-      liquidator?: null
+      liquidateAt?: null,
+      liquidator?: null,
+      keyPrice?: null
     ): TierkeyLiquidatedEventFilter;
 
-    "TierkeySold(bytes32,uint256,uint256,address,uint256,uint256)"(
+    "TierkeySold(bytes32,uint256,uint256,uint256,address,uint256,uint256)"(
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
       keyId?: BigNumberish | null,
+      sellAt?: null,
       trader?: null,
       keyPrice?: null,
       depreciatedKeyPrice?: null
@@ -1459,6 +1476,7 @@ export interface PyraZone extends BaseContract {
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
       keyId?: BigNumberish | null,
+      sellAt?: null,
       trader?: null,
       keyPrice?: null,
       depreciatedKeyPrice?: null
@@ -1573,8 +1591,8 @@ export interface PyraZone extends BaseContract {
 
     isAccessible(
       assetId: BytesLike,
-      tier: BigNumberish,
       account: string,
+      tier: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1787,8 +1805,8 @@ export interface PyraZone extends BaseContract {
 
     isAccessible(
       assetId: BytesLike,
-      tier: BigNumberish,
       account: string,
+      tier: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

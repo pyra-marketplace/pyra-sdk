@@ -138,7 +138,9 @@ export class RevenuePool {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const tx = await this.revenuePool.distribute(rewards);
+    const shareholder = await this.signer!.getAddress();
+
+    const tx = await this.revenuePool.distribute(shareholder, rewards);
     const receipt = await tx.wait();
 
     const targetEvents = receipt.events?.filter(

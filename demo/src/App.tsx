@@ -4,7 +4,7 @@ import {
   SYSTEM_CALL,
   MeteorWalletProvider
 } from "@meteor-web3/connector";
-import { ethers } from "ethers";
+import { BigNumberish, ethers } from "ethers";
 import { PyraZone, PyraMarket, RevenuePool } from "../../src";
 import "./App.scss";
 import { ChainId } from "../../src/types";
@@ -20,18 +20,9 @@ const chainId = ChainId.PolygonMumbai;
 
 const postVersion = "0.0.1";
 
-let address: string;
-
-let assetId: string =
-  "0x320f9fe5586b1fbfca478eb9823c07f2408691bed5b0e86caee5ed7f066f3960";
-
 let indexFileId: string;
 
-let tier: string;
-
 let tierkeyId: string;
-
-let keyId: string;
 
 let shareContractAddress: string;
 
@@ -41,12 +32,16 @@ let rewards: number;
 
 function App() {
   const [pkh, setPkh] = React.useState("");
+  const [address, setAddress] = React.useState<string>();
+  const [assetId, setAssetId] = React.useState<string>();
+  const [tier, setTier] = React.useState(0);
+  const [keyId, setKeyId] = React.useState<BigNumberish>(0);
 
   const createCapability = async () => {
     const connectWalletRes = await connector.connectWallet({
       provider: (window as any).ethereum
     });
-    address = connectWalletRes.address;
+    setAddress(connectWalletRes.address);
     console.log(address);
     const createCapabilityRes = await connector.runOS({
       method: SYSTEM_CALL.createCapability,
@@ -61,13 +56,22 @@ function App() {
 
   /*** PyraZone wirte operation */
   const createPyraZone = async () => {
-    const pyraZone = new PyraZone({
-      chainId,
-      connector
-    });
-
-    assetId = await pyraZone.createPyraZone();
-    console.log(assetId);
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
+    let _assetId: string;
+    const pyraZones = await PyraZone.loadPyraZones({chainId, publishers: [address]});
+    if(pyraZones.length > 0) {
+      _assetId = pyraZones[0].asset_id;
+    } else {
+      const pyraZone = new PyraZone({
+        chainId,
+        connector,
+      });
+      _assetId = await pyraZone.createPyraZone();
+    }
+    setAssetId(_assetId)
+    console.log(_assetId);
   };
 
   const createTierkey = async () => {
@@ -78,7 +82,7 @@ function App() {
     });
 
     const res = await pyraZone.createTierkey(10);
-    tier = res.tier;
+    setTier(res.tier);
     tierkeyId = res.tierkeyId;
     console.log(res);
   };
@@ -123,12 +127,16 @@ function App() {
       connector
     });
 
-    keyId = await pyraZone.buyTierkey(tier);
+    const keyId = await pyraZone.buyTierkey(tier);
     console.log(keyId);
+    setKeyId(keyId)
     return keyId;
   };
 
   const isAccessible = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraZone = new PyraZone({
       chainId,
       assetId,
@@ -171,6 +179,11 @@ function App() {
       assetId,
       connector
     });
+    console.log("keyId:", keyId)
+    if(keyId === undefined) {
+      console.error("key id is undefined")
+      return
+    }
     await pyraZone.sellTierkey({ tier, keyId });
     console.log("Sold tierkey successfully");
   };
@@ -178,7 +191,28 @@ function App() {
   /*** PyraZone wirte operation */
 
   /*** PyraZone read operation */
+  const loadPyraZones = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
+    const res = await PyraZone.loadPyraZones({chainId, publishers: [address]});
+    console.log("loadPyraZones:", res)
+  }
+
+  const loadPyraZoneTierkeyHolders = async () => {
+    const res = await PyraZone.loadPyraZoneTierkeyHolders({chainId, assetId, tier})
+    console.log("loadPyraZoneTierkeyHolders:", res)
+  }
+
+  const loadPyraZoneTierkeyActivities = async () => {
+    const res = await PyraZone.loadPyraZoneTierkeyActivities({chainId, assetId, tier})
+    console.log("loadPyraZoneTierkeyActivities:", res)
+  }
+
   const loadFilesInPyraZone = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraZone = new PyraZone({
       chainId,
       connector
@@ -215,6 +249,9 @@ function App() {
   };
 
   const getBuyPrice = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraMarket = new PyraMarket({
       chainId,
       connector
@@ -227,6 +264,9 @@ function App() {
   };
 
   const buyShares = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraMarket = new PyraMarket({
       chainId,
       connector
@@ -239,6 +279,9 @@ function App() {
   };
 
   const getSellPrice = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraMarket = new PyraMarket({
       chainId,
       connector
@@ -251,6 +294,9 @@ function App() {
   };
 
   const sellShares = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraMarket = new PyraMarket({
       chainId,
       connector
@@ -264,7 +310,28 @@ function App() {
   /*** PyraMarket wirte operation */
 
   /*** PyraMarket read operation */
+  const loadPyraMarkets = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
+    const res = await PyraMarket.loadPyraMarkets({chainId, publishers: [address]})
+    console.log("loadPyraMarkets:", res)
+  }
+
+  const loadPyraMarketShareHolders = async () => {
+    const res = await PyraMarket.loadPyraMarketShareHolders({chainId, publisher: address})
+    console.log("loadPyraMarketShareHolders:", res)
+  }
+
+  const loadPyraMarketShareActivities = async () => {
+    const res = await PyraMarket.loadPyraMarketShareActivities({chainId, publisher: address})
+    console.log("loadPyraMarketShareActivities:", res)
+  }
+
   const getShareInfo = async () => {
+    if(!address) {
+      throw new Error("Not connect wallet")
+    }
     const pyraMarket = new PyraMarket({
       chainId,
       connector
@@ -377,9 +444,15 @@ function App() {
       <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
       <button onClick={() => sellTierkey()}>sellTierkey</button>
+      <button onClick={() => loadPyraZones()}>loadPyraZones</button>
+      <button onClick={() => loadPyraZoneTierkeyHolders()}>loadPyraZoneTierkeyHolders</button>
+      <button onClick={() => loadPyraZoneTierkeyActivities()}>loadPyraZoneTierkeyActivities</button>
       <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
       <button onClick={() => loadFilesByTierkey()}>loadFilesByTierkey</button>
       <br />
+      <button onClick={() => loadPyraMarkets()}>loadPyraMarkets</button>
+      <button onClick={() => loadPyraMarketShareHolders()}>loadPyraMarketShareHolders</button>
+      <button onClick={() => loadPyraMarketShareActivities()}>loadPyraMarketShareActivities</button>
       <button onClick={() => createShare()}>createShare</button>
       <button onClick={() => buyShares()}>buyShares</button>
       <button onClick={() => getBuyPrice()}>getBuyPrice</button>

@@ -13,11 +13,7 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -28,72 +24,43 @@ import type {
 
 export interface RevenuePoolInterface extends utils.Interface {
   functions: {
+    "OWNER()": FunctionFragment;
     "PYRA_MARKET()": FunctionFragment;
-    "allowance(address,address)": FunctionFragment;
-    "approve(address,uint256)": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
     "claim(address)": FunctionFragment;
-    "decimals()": FunctionFragment;
-    "distribute(uint256)": FunctionFragment;
+    "distribute(address,uint256)": FunctionFragment;
     "getShare()": FunctionFragment;
     "getStakingRewards(address)": FunctionFragment;
-    "monthlyDistributeInfo(uint256,uint256)": FunctionFragment;
-    "name()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "shareholdersStakeInfo(address)": FunctionFragment;
+    "monthlyRevenuePoolStatus(uint256,uint256)": FunctionFragment;
+    "monthlyShareholdersRewards(uint256,uint256,address)": FunctionFragment;
+    "shareholdersStatus(address)": FunctionFragment;
     "stake(uint256)": FunctionFragment;
-    "symbol()": FunctionFragment;
-    "totalSupply()": FunctionFragment;
-    "transfer(address,uint256)": FunctionFragment;
-    "transferFrom(address,address,uint256)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "unstake(uint256)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "OWNER"
       | "PYRA_MARKET"
-      | "allowance"
-      | "approve"
-      | "balanceOf"
       | "claim"
-      | "decimals"
       | "distribute"
       | "getShare"
       | "getStakingRewards"
-      | "monthlyDistributeInfo"
-      | "name"
-      | "owner"
-      | "renounceOwnership"
-      | "shareholdersStakeInfo"
+      | "monthlyRevenuePoolStatus"
+      | "monthlyShareholdersRewards"
+      | "shareholdersStatus"
       | "stake"
-      | "symbol"
-      | "totalSupply"
-      | "transfer"
-      | "transferFrom"
-      | "transferOwnership"
       | "unstake"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "OWNER", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "PYRA_MARKET",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "allowance",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "approve",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "claim", values: [string]): string;
-  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "distribute",
-    values: [BigNumberish]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "getShare", values?: undefined): string;
   encodeFunctionData(
@@ -101,51 +68,29 @@ export interface RevenuePoolInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "monthlyDistributeInfo",
+    functionFragment: "monthlyRevenuePoolStatus",
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
+    functionFragment: "monthlyShareholdersRewards",
+    values: [BigNumberish, BigNumberish, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "shareholdersStakeInfo",
+    functionFragment: "shareholdersStatus",
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transfer",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferFrom",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
   encodeFunctionData(
     functionFragment: "unstake",
     values: [BigNumberish]
   ): string;
 
+  decodeFunctionResult(functionFragment: "OWNER", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "PYRA_MARKET",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getShare", data: BytesLike): Result;
   decodeFunctionResult(
@@ -153,131 +98,22 @@ export interface RevenuePoolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "monthlyDistributeInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "monthlyRevenuePoolStatus",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "shareholdersStakeInfo",
+    functionFragment: "monthlyShareholdersRewards",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "shareholdersStatus",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "unstake", data: BytesLike): Result;
 
-  events: {
-    "Approval(address,address,uint256)": EventFragment;
-    "Claimed(address,uint256)": EventFragment;
-    "Distributed(address,uint256)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
-    "SharesStaked(address,uint256)": EventFragment;
-    "SharesUnstaked(address,uint256)": EventFragment;
-    "Transfer(address,address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Claimed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Distributed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SharesStaked"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SharesUnstaked"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  events: {};
 }
-
-export interface ApprovalEventObject {
-  owner: string;
-  spender: string;
-  value: BigNumber;
-}
-export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ApprovalEventObject
->;
-
-export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
-
-export interface ClaimedEventObject {
-  to: string;
-  amount: BigNumber;
-}
-export type ClaimedEvent = TypedEvent<[string, BigNumber], ClaimedEventObject>;
-
-export type ClaimedEventFilter = TypedEventFilter<ClaimedEvent>;
-
-export interface DistributedEventObject {
-  to: string;
-  amount: BigNumber;
-}
-export type DistributedEvent = TypedEvent<
-  [string, BigNumber],
-  DistributedEventObject
->;
-
-export type DistributedEventFilter = TypedEventFilter<DistributedEvent>;
-
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
-}
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
-
-export interface SharesStakedEventObject {
-  shareholder: string;
-  amount: BigNumber;
-}
-export type SharesStakedEvent = TypedEvent<
-  [string, BigNumber],
-  SharesStakedEventObject
->;
-
-export type SharesStakedEventFilter = TypedEventFilter<SharesStakedEvent>;
-
-export interface SharesUnstakedEventObject {
-  shareholder: string;
-  amount: BigNumber;
-}
-export type SharesUnstakedEvent = TypedEvent<
-  [string, BigNumber],
-  SharesUnstakedEventObject
->;
-
-export type SharesUnstakedEventFilter = TypedEventFilter<SharesUnstakedEvent>;
-
-export interface TransferEventObject {
-  from: string;
-  to: string;
-  value: BigNumber;
-}
-export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  TransferEventObject
->;
-
-export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface RevenuePool extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -306,30 +142,17 @@ export interface RevenuePool extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    OWNER(overrides?: CallOverrides): Promise<[string]>;
+
     PYRA_MARKET(overrides?: CallOverrides): Promise<[string]>;
-
-    allowance(
-      owner: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    approve(
-      spender: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     claim(
       shareholder: string,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    decimals(overrides?: CallOverrides): Promise<[number]>;
-
     distribute(
+      shareholder: string,
       rewards: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
@@ -341,57 +164,41 @@ export interface RevenuePool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    monthlyDistributeInfo(
+    monthlyRevenuePoolStatus(
       arg0: BigNumberish,
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [boolean, BigNumber, BigNumber] & {
+      [boolean, BigNumber, BigNumber, BigNumber, BigNumber] & {
         triggered: boolean;
+        totalRewards: BigNumber;
+        totalDistributedRewards: BigNumber;
         totalRevenue: BigNumber;
-        distributedRevenue: BigNumber;
+        totalDistributedRevenue: BigNumber;
       }
     >;
 
-    name(overrides?: CallOverrides): Promise<[string]>;
+    monthlyShareholdersRewards(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      arg2: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    shareholdersStakeInfo(
+    shareholdersStatus(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & { timestamp: BigNumber; shares: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        timestamp: BigNumber;
+        shares: BigNumber;
+        rewards: BigNumber;
+        revenue: BigNumber;
+      }
     >;
 
     stake(
       sharesAmount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    symbol(overrides?: CallOverrides): Promise<[string]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    transfer(
-      to: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    transferFrom(
-      from: string,
-      to: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -401,30 +208,17 @@ export interface RevenuePool extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  OWNER(overrides?: CallOverrides): Promise<string>;
+
   PYRA_MARKET(overrides?: CallOverrides): Promise<string>;
-
-  allowance(
-    owner: string,
-    spender: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  approve(
-    spender: string,
-    value: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   claim(
     shareholder: string,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  decimals(overrides?: CallOverrides): Promise<number>;
-
   distribute(
+    shareholder: string,
     rewards: BigNumberish,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
@@ -436,57 +230,41 @@ export interface RevenuePool extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  monthlyDistributeInfo(
+  monthlyRevenuePoolStatus(
     arg0: BigNumberish,
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [boolean, BigNumber, BigNumber] & {
+    [boolean, BigNumber, BigNumber, BigNumber, BigNumber] & {
       triggered: boolean;
+      totalRewards: BigNumber;
+      totalDistributedRewards: BigNumber;
       totalRevenue: BigNumber;
-      distributedRevenue: BigNumber;
+      totalDistributedRevenue: BigNumber;
     }
   >;
 
-  name(overrides?: CallOverrides): Promise<string>;
+  monthlyShareholdersRewards(
+    arg0: BigNumberish,
+    arg1: BigNumberish,
+    arg2: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  shareholdersStakeInfo(
+  shareholdersStatus(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber] & { timestamp: BigNumber; shares: BigNumber }
+    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      timestamp: BigNumber;
+      shares: BigNumber;
+      rewards: BigNumber;
+      revenue: BigNumber;
+    }
   >;
 
   stake(
     sharesAmount: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  symbol(overrides?: CallOverrides): Promise<string>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  transfer(
-    to: string,
-    value: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  transferFrom(
-    from: string,
-    to: string,
-    value: BigNumberish,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  transferOwnership(
-    newOwner: string,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -496,27 +274,14 @@ export interface RevenuePool extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    OWNER(overrides?: CallOverrides): Promise<string>;
+
     PYRA_MARKET(overrides?: CallOverrides): Promise<string>;
-
-    allowance(
-      owner: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    approve(
-      spender: string,
-      value: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     claim(shareholder: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    decimals(overrides?: CallOverrides): Promise<number>;
-
     distribute(
+      shareholder: string,
       rewards: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -528,54 +293,40 @@ export interface RevenuePool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    monthlyDistributeInfo(
+    monthlyRevenuePoolStatus(
       arg0: BigNumberish,
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [boolean, BigNumber, BigNumber] & {
+      [boolean, BigNumber, BigNumber, BigNumber, BigNumber] & {
         triggered: boolean;
+        totalRewards: BigNumber;
+        totalDistributedRewards: BigNumber;
         totalRevenue: BigNumber;
-        distributedRevenue: BigNumber;
+        totalDistributedRevenue: BigNumber;
       }
     >;
 
-    name(overrides?: CallOverrides): Promise<string>;
+    monthlyShareholdersRewards(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      arg2: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    shareholdersStakeInfo(
+    shareholdersStatus(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & { timestamp: BigNumber; shares: BigNumber }
+      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+        timestamp: BigNumber;
+        shares: BigNumber;
+        rewards: BigNumber;
+        revenue: BigNumber;
+      }
     >;
 
     stake(sharesAmount: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    symbol(overrides?: CallOverrides): Promise<string>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      to: string,
-      value: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    transferFrom(
-      from: string,
-      to: string,
-      value: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     unstake(
       sharesAmount: BigNumberish,
@@ -583,94 +334,20 @@ export interface RevenuePool extends BaseContract {
     ): Promise<void>;
   };
 
-  filters: {
-    "Approval(address,address,uint256)"(
-      owner?: string | null,
-      spender?: string | null,
-      value?: null
-    ): ApprovalEventFilter;
-    Approval(
-      owner?: string | null,
-      spender?: string | null,
-      value?: null
-    ): ApprovalEventFilter;
-
-    "Claimed(address,uint256)"(
-      to?: string | null,
-      amount?: null
-    ): ClaimedEventFilter;
-    Claimed(to?: string | null, amount?: null): ClaimedEventFilter;
-
-    "Distributed(address,uint256)"(
-      to?: string | null,
-      amount?: null
-    ): DistributedEventFilter;
-    Distributed(to?: string | null, amount?: null): DistributedEventFilter;
-
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-
-    "SharesStaked(address,uint256)"(
-      shareholder?: string | null,
-      amount?: null
-    ): SharesStakedEventFilter;
-    SharesStaked(
-      shareholder?: string | null,
-      amount?: null
-    ): SharesStakedEventFilter;
-
-    "SharesUnstaked(address,uint256)"(
-      shareholder?: string | null,
-      amount?: null
-    ): SharesUnstakedEventFilter;
-    SharesUnstaked(
-      shareholder?: string | null,
-      amount?: null
-    ): SharesUnstakedEventFilter;
-
-    "Transfer(address,address,uint256)"(
-      from?: string | null,
-      to?: string | null,
-      value?: null
-    ): TransferEventFilter;
-    Transfer(
-      from?: string | null,
-      to?: string | null,
-      value?: null
-    ): TransferEventFilter;
-  };
+  filters: {};
 
   estimateGas: {
+    OWNER(overrides?: CallOverrides): Promise<BigNumber>;
+
     PYRA_MARKET(overrides?: CallOverrides): Promise<BigNumber>;
-
-    allowance(
-      owner: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    approve(
-      spender: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     claim(
       shareholder: string,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
     distribute(
+      shareholder: string,
       rewards: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
@@ -682,49 +359,26 @@ export interface RevenuePool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    monthlyDistributeInfo(
+    monthlyRevenuePoolStatus(
       arg0: BigNumberish,
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    name(overrides?: CallOverrides): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string }
+    monthlyShareholdersRewards(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      arg2: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    shareholdersStakeInfo(
+    shareholdersStatus(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     stake(
       sharesAmount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      to: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    transferFrom(
-      from: string,
-      to: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -735,33 +389,17 @@ export interface RevenuePool extends BaseContract {
   };
 
   populateTransaction: {
+    OWNER(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     PYRA_MARKET(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    allowance(
-      owner: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    approve(
-      spender: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    balanceOf(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     claim(
       shareholder: string,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     distribute(
+      shareholder: string,
       rewards: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
@@ -773,49 +411,26 @@ export interface RevenuePool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    monthlyDistributeInfo(
+    monthlyRevenuePoolStatus(
       arg0: BigNumberish,
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string }
+    monthlyShareholdersRewards(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      arg2: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    shareholdersStakeInfo(
+    shareholdersStatus(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     stake(
       sharesAmount: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transfer(
-      to: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    transferFrom(
-      from: string,
-      to: string,
-      value: BigNumberish,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 

@@ -13,10 +13,12 @@ import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import { ChainId, ZoneAsset } from "./types";
+import { ChainId, PyraZoneRes, PyraZoneTierkeyActivityRes, PyraZoneTierkeyHolderRes, ZoneAsset } from "./types";
 import { PyraZone__factory } from "./abi/typechain";
 import { DEPLOYED_ADDRESSES } from "./addresses";
 import { TradeType } from "./types";
+import { abiCoder } from "@pyra-marketplace/assets-sdk";
+import { http } from "./utils";
 
 export class PyraZone extends DataAssetBase {
   pyraZone;
@@ -59,7 +61,8 @@ export class PyraZone extends DataAssetBase {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const data: string = "0x";
+    const expiration = 3600 * 24 * 7; // 1 week
+    const data: string = abiCoder.encode(["uint256"], [expiration]);
     const actions: string[] = [];
     const actionInitDatas: string[] = [];
 
@@ -127,6 +130,8 @@ export class PyraZone extends DataAssetBase {
       TradeType.Buy
     );
 
+    console.log("totalPrice:", totalPrice);
+
     const tx = await this.pyraZone.buyTierkey(this.assetId, tier, {
       value: totalPrice
     });
@@ -165,7 +170,10 @@ export class PyraZone extends DataAssetBase {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId);
+    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId, {
+      gasPrice: 2000,
+      gasLimit: 200000
+    });
     await tx.wait();
   }
 
@@ -215,7 +223,7 @@ export class PyraZone extends DataAssetBase {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    const res = await this.pyraZone.isAccessible(this.assetId, tier, account);
+    const res = await this.pyraZone.isAccessible(this.assetId, account, tier);
 
     return res;
   }
@@ -495,5 +503,51 @@ export class PyraZone extends DataAssetBase {
       {},
       ...Object.values(res).map((item) => item.mirrorRecord)
     );
+  }
+
+  static async loadPyraZones({
+    chainId,
+    assetIds,
+    publishers
+  }: {
+    chainId?: number;
+    assetIds?: string[];
+    publishers?: string[];
+  }) {
+    const pyraZones: PyraZoneRes[] = await http.request({
+      url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
+      method: "get",
+      params: {
+        asset_ids: assetIds?.join(','),
+        publishers: publishers?.join(',')
+      }
+    });
+    return pyraZones
+  }
+
+  static async loadPyraZoneTierkeyHolders({chainId, assetId, tier, tierkey}: {chainId?: number, assetId?: string, tier?: number, tierkey?: string}) {
+    const tierkeyHolders: PyraZoneTierkeyHolderRes[] = await http.request({
+      url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/holder`,
+      method: "get",
+      params: {
+        asset_id: assetId,
+        tier,
+        tierkey
+      }
+    });
+    return tierkeyHolders
+  }
+
+  static async loadPyraZoneTierkeyActivities({chainId, assetId, tier, tierkey}: {chainId?: number, assetId?: string, tier?: number, tierkey?: string}) {
+    const tierkeyActivities: PyraZoneTierkeyActivityRes[] = await http.request({
+      url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/activity`,
+      method: "get",
+      params: {
+        asset_id: assetId,
+        tier,
+        tierkey
+      }
+    });
+    return tierkeyActivities
   }
 }

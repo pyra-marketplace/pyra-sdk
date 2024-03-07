@@ -2,7 +2,7 @@ import { ChainId } from "../types";
 
 export const DEPLOYED_ADDRESSES = {
   [ChainId.PolygonMumbai]: {
-    PyraMarket: "0x812dC6f05F73B6D0bf38c2e95B503f727a3393B3",
-    PyraZone: "0x493Da442e5bA8DE8EF5a046BfFCf12654cE5Da11"
+    PyraMarket: "0x14a144575c4358D55434b179C1cAE6B2c6ff7655",
+    PyraZone: "0x67804E153F9675E2173142B76f9fe949b2b20bDE"
   }
 };
