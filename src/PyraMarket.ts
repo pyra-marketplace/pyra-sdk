@@ -2,8 +2,13 @@ import { BigNumberish, Signer, ethers } from "ethers";
 import { Connector } from "@meteor-web3/connector";
 
 import { DataAssetBase } from "@pyra-marketplace/assets-sdk/data-asset";
-import { ChainId, PyraMarketRes, PyraMarketShareActivityRes, PyraMarketShareHolderRes } from "./types";
-import { PyraMarket__factory } from "./abi/typechain";
+import {
+  ChainId,
+  PyraMarketRes,
+  PyraMarketShareActivityRes,
+  PyraMarketShareHolderRes
+} from "./types";
+import { PyraMarket__factory, Share__factory } from "./abi/typechain";
 import { DEPLOYED_ADDRESSES } from "./addresses";
 import { http } from "./utils";
 
@@ -62,20 +67,18 @@ export class PyraMarket extends DataAssetBase {
       feePoint
     );
     const receipt = await tx.wait();
-    console.log(receipt);
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "ShareCreated"
     );
-    console.log(targetEvents);
     if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
       throw new Error("Filter ShareCreated event failed");
     }
-    const shareContractAddress: string = targetEvents[0].args[1];
-    const revenuePoolContractAddress: string = targetEvents[0].args[2];
-    return { shareContractAddress, revenuePoolContractAddress };
+    const shareAddress: string = targetEvents[0].args[1];
+    const revenuePoolAddress: string = targetEvents[0].args[2];
+    return { shareAddress, revenuePoolAddress };
   }
 
-  public async getBuyPrice({
+  public async loadBuyPrice({
     creator,
     amount
   }: {
@@ -98,7 +101,7 @@ export class PyraMarket extends DataAssetBase {
     return totalPrice;
   }
 
-  public async getSellPrice({
+  public async loadSellPrice({
     creator,
     amount
   }: {
@@ -171,7 +174,7 @@ export class PyraMarket extends DataAssetBase {
     await tx.wait();
   }
 
-  public async getShareInfo(creator: string) {
+  public async loadShareInfo(creator: string) {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
@@ -187,24 +190,61 @@ export class PyraMarket extends DataAssetBase {
 
     return {
       revenuePool: shareInfo.revenuePool,
-      share: shareInfo.share,
+      shareAddress: shareInfo.share,
       feePoint: shareInfo.feePoint,
       totalValue: shareInfo.totalValue
     };
   }
 
-  static async loadPyraMarkets({chainId, publishers}:{chainId?: number, publishers: string[]}) {
+  public async loadTotalSupply(shareAddress: string) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    if (!this.signer) {
+      throw new Error("Signer not found, please connect wallet");
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const share = Share__factory.connect(shareAddress, this.signer);
+
+    const res = await share.totalSupply();
+
+    return res;
+  }
+
+  static async loadPyraMarkets({
+    chainId,
+    publishers
+  }: {
+    chainId?: number;
+    publishers: string[];
+  }) {
     const pyraMarkets: PyraMarketRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-market`,
       method: "get",
       params: {
-        publishers: publishers.join(',')
+        publishers: publishers.join(",")
       }
     });
-    return pyraMarkets
+    return pyraMarkets;
   }
 
-  static async loadPyraMarketShareHolders({chainId, share, publisher}: {chainId?: number, share?: string, publisher?: string}) {
+  static async loadPyraMarketShareHolders({
+    chainId,
+    share,
+    publisher
+  }: {
+    chainId?: number;
+    share?: string;
+    publisher?: string;
+  }) {
     const shareHolders: PyraMarketShareHolderRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/holder`,
       method: "get",
@@ -213,10 +253,18 @@ export class PyraMarket extends DataAssetBase {
         publisher
       }
     });
-    return shareHolders
+    return shareHolders;
   }
 
-  static async loadPyraMarketShareActivities({chainId, share, publisher}: {chainId?: number, share?: string, publisher?: string}) {
+  static async loadPyraMarketShareActivities({
+    chainId,
+    share,
+    publisher
+  }: {
+    chainId?: number;
+    share?: string;
+    publisher?: string;
+  }) {
     const shareActivities: PyraMarketShareActivityRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/activity`,
       method: "get",
@@ -225,6 +273,6 @@ export class PyraMarket extends DataAssetBase {
         publisher
       }
     });
-    return shareActivities
+    return shareActivities;
   }
 }

@@ -13,11 +13,17 @@ import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import { ChainId, PyraZoneRes, PyraZoneTierkeyActivityRes, PyraZoneTierkeyHolderRes, ZoneAsset } from "./types";
+import { abiCoder } from "@pyra-marketplace/assets-sdk";
+import {
+  ChainId,
+  PyraZoneRes,
+  PyraZoneTierkeyActivityRes,
+  PyraZoneTierkeyHolderRes,
+  ZoneAsset
+} from "./types";
 import { PyraZone__factory } from "./abi/typechain";
 import { DEPLOYED_ADDRESSES } from "./addresses";
 import { TradeType } from "./types";
-import { abiCoder } from "@pyra-marketplace/assets-sdk";
 import { http } from "./utils";
 
 export class PyraZone extends DataAssetBase {
@@ -102,7 +108,7 @@ export class PyraZone extends DataAssetBase {
     }
     return {
       tier: targetEvents[0].args[1],
-      tierkeyId: targetEvents[0].args[2]
+      tierkey: targetEvents[0].args[2]
     };
   }
 
@@ -197,6 +203,60 @@ export class PyraZone extends DataAssetBase {
 
     const zoneAsset: ZoneAsset = await this.pyraZone.getZoneAsset(this.assetId);
     return zoneAsset;
+  }
+
+  public async loadBuyPrice(tier: BigNumberish) {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const price = await this.pyraZone.getTierkeyPrice(
+      this.assetId,
+      tier,
+      TradeType.Buy
+    );
+
+    return price;
+  }
+
+  public async loadSellPrice(tier: BigNumberish) {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const price = await this.pyraZone.getTierkeyPrice(
+      this.assetId,
+      tier,
+      TradeType.Sell
+    );
+
+    return price;
   }
 
   public async isAccessible({
@@ -305,12 +365,12 @@ export class PyraZone extends DataAssetBase {
     modelId,
     fileName,
     fileContent,
-    tierkeyId
+    tierkey
   }: {
     modelId: string;
     fileName?: string;
     fileContent: FileContent;
-    tierkeyId: string;
+    tierkey: string;
   }) {
     if (!this.assetId) {
       throw new Error(
@@ -327,8 +387,8 @@ export class PyraZone extends DataAssetBase {
         "AssetContract cannot be empty, please pass in through constructor"
       );
     }
-    if (!tierkeyId) {
-      throw new Error("TierkeyId cannot be empty");
+    if (!tierkey) {
+      throw new Error("Tierkey cannot be empty");
     }
 
     const folders = await this.connector.runOS({
@@ -340,6 +400,9 @@ export class PyraZone extends DataAssetBase {
         folder.options?.signals?.find(
           (signal) =>
             signal.type === SignalType.asset && signal.id === this.assetId
+        ) &&
+        folder.options?.signals?.find(
+          (signal) => signal.type === SignalType.asset && signal.id === tierkey
         )
     );
 
@@ -348,7 +411,7 @@ export class PyraZone extends DataAssetBase {
       const res = await this.connector.runOS({
         method: SYSTEM_CALL.createFolder,
         params: {
-          folderName: `${SignalType[SignalType.asset]}:${this.assetId}`,
+          folderName: `assetId:${this.assetId},tierkey:${tierkey}`,
           folderType: FolderType.PrivateFolderType,
           signals: [
             {
@@ -357,7 +420,7 @@ export class PyraZone extends DataAssetBase {
             },
             {
               type: SignalType.asset,
-              id: tierkeyId
+              id: tierkey
             }
           ]
         }
@@ -382,7 +445,7 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tierkeyId
+        tierkey
       }
     });
 
@@ -391,10 +454,10 @@ export class PyraZone extends DataAssetBase {
 
   public async addTierFile({
     fileId,
-    tierkeyId
+    tierkey
   }: {
     fileId: string;
-    tierkeyId: string;
+    tierkey: string;
   }) {
     if (!this.assetId) {
       throw new Error(
@@ -411,8 +474,8 @@ export class PyraZone extends DataAssetBase {
         "AssetContract cannot be empty, please pass in through constructor"
       );
     }
-    if (!tierkeyId) {
-      throw new Error("TierkeyId cannot be empty");
+    if (!tierkey) {
+      throw new Error("Tierkey cannot be empty");
     }
 
     const applyConditionsToFileRes = await this.applyConditionsToFile({
@@ -423,7 +486,7 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tierkeyId
+        tierkey
       }
     });
 
@@ -438,8 +501,7 @@ export class PyraZone extends DataAssetBase {
             signal.type === SignalType.asset && signal.id === this.assetId
         ) &&
         folder.options?.signals?.find(
-          (signal) =>
-            signal.type === SignalType.asset && signal.id === tierkeyId
+          (signal) => signal.type === SignalType.asset && signal.id === tierkey
         )
     );
 
@@ -448,7 +510,7 @@ export class PyraZone extends DataAssetBase {
       const res = await this.connector.runOS({
         method: SYSTEM_CALL.createFolder,
         params: {
-          folderName: `${SignalType[SignalType.asset]}:${this.assetId}`,
+          folderName: `assetId:${this.assetId},tierkey:${tierkey}`,
           folderType: FolderType.PrivateFolderType,
           signals: [
             {
@@ -457,7 +519,7 @@ export class PyraZone extends DataAssetBase {
             },
             {
               type: SignalType.asset,
-              id: tierkeyId
+              id: tierkey
             }
           ]
         }
@@ -486,6 +548,16 @@ export class PyraZone extends DataAssetBase {
       params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
     });
 
+    const res2 = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFilesBy,
+      params: {
+        modelId:
+          "kjzl6hvfrbw6c8h0oiiv2ccikb2thxsu98sy0ydi6oshj6sjuz9dga94463anvf",
+        pkh: "did:pkh:eip155:1:0x11625be3fbD0e98Ea1fA7569098467F026d96D05"
+      }
+    });
+    console.log({ res2 });
+
     return Object.assign(
       {},
       ...Object.values(res).map((item) =>
@@ -499,14 +571,14 @@ export class PyraZone extends DataAssetBase {
     );
   }
 
-  public async loadFilesByTierkey(tierkeyId: string) {
-    if (!tierkeyId) {
-      throw new Error("TierkeyId cannot be empty");
+  public async loadFilesByTierkey(tierkey: string) {
+    if (!tierkey) {
+      throw new Error("Tierkey cannot be empty");
     }
 
     const res = await this.connector.runOS({
       method: SYSTEM_CALL.loadFoldersBy,
-      params: { signals: [{ type: SignalType.asset, id: tierkeyId }] }
+      params: { signals: [{ type: SignalType.asset, id: tierkey }] }
     });
 
     return Object.assign(
@@ -535,14 +607,24 @@ export class PyraZone extends DataAssetBase {
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
       method: "get",
       params: {
-        asset_ids: assetIds?.join(','),
-        publishers: publishers?.join(',')
+        asset_ids: assetIds?.join(","),
+        publishers: publishers?.join(",")
       }
     });
-    return pyraZones
+    return pyraZones;
   }
 
-  static async loadPyraZoneTierkeyHolders({chainId, assetId, tier, tierkey}: {chainId?: number, assetId?: string, tier?: number, tierkey?: string}) {
+  static async loadPyraZoneTierkeyHolders({
+    chainId,
+    assetId,
+    tier,
+    tierkey
+  }: {
+    chainId?: number;
+    assetId?: string;
+    tier?: number;
+    tierkey?: string;
+  }) {
     const tierkeyHolders: PyraZoneTierkeyHolderRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/holder`,
       method: "get",
@@ -552,10 +634,20 @@ export class PyraZone extends DataAssetBase {
         tierkey
       }
     });
-    return tierkeyHolders
+    return tierkeyHolders;
   }
 
-  static async loadPyraZoneTierkeyActivities({chainId, assetId, tier, tierkey}: {chainId?: number, assetId?: string, tier?: number, tierkey?: string}) {
+  static async loadPyraZoneTierkeyActivities({
+    chainId,
+    assetId,
+    tier,
+    tierkey
+  }: {
+    chainId?: number;
+    assetId?: string;
+    tier?: number;
+    tierkey?: string;
+  }) {
     const tierkeyActivities: PyraZoneTierkeyActivityRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/activity`,
       method: "get",
@@ -565,6 +657,6 @@ export class PyraZone extends DataAssetBase {
         tierkey
       }
     });
-    return tierkeyActivities
+    return tierkeyActivities;
   }
 }

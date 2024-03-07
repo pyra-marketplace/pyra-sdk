@@ -20,20 +20,23 @@ const chainId = ChainId.PolygonMumbai;
 
 const postVersion = "0.0.1";
 
-let indexFileId: string;
+let indexFileId: string =
+  "kjzl6kcym7w8y9jl3xz20ppi5t4k30ubxcot6owccob6bokgftgrddmx5mo1abs";
 
-let tierkeyId: string;
+let tierkey: string = "0x6A4DBD867039Fb23897aE1EcDf348746534b2797";
 
-let shareContractAddress: string;
+let shareAddress: string;
 
-let revenuePoolContractAddress: string;
+let revenuePoolAddress: string;
 
 let rewards: number;
 
 function App() {
   const [pkh, setPkh] = React.useState("");
   const [address, setAddress] = React.useState<string>();
-  const [assetId, setAssetId] = React.useState<string>();
+  const [assetId, setAssetId] = React.useState<string>(
+    "0x11a8093021037a7d95d3073535c345041d3461e074525765069007de9beac8c5"
+  );
   const [tier, setTier] = React.useState(0);
   const [keyId, setKeyId] = React.useState<BigNumberish>(0);
 
@@ -56,21 +59,24 @@ function App() {
 
   /*** PyraZone wirte operation */
   const createPyraZone = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
     let _assetId: string;
-    const pyraZones = await PyraZone.loadPyraZones({chainId, publishers: [address]});
-    if(pyraZones.length > 0) {
+    const pyraZones = await PyraZone.loadPyraZones({
+      chainId,
+      publishers: [address]
+    });
+    if (pyraZones.length > 0) {
       _assetId = pyraZones[0].asset_id;
     } else {
       const pyraZone = new PyraZone({
         chainId,
-        connector,
+        connector
       });
       _assetId = await pyraZone.createPyraZone();
     }
-    setAssetId(_assetId)
+    setAssetId(_assetId);
     console.log(_assetId);
   };
 
@@ -83,7 +89,7 @@ function App() {
 
     const res = await pyraZone.createTierkey(10);
     setTier(res.tier);
-    tierkeyId = res.tierkeyId;
+    tierkey = res.tierkey;
     console.log(res);
   };
 
@@ -114,7 +120,7 @@ function App() {
           videos: false
         })
       },
-      tierkeyId
+      tierkey
     });
     indexFileId = res.fileContent.file.fileId;
     console.log(indexFileId);
@@ -129,13 +135,13 @@ function App() {
 
     const keyId = await pyraZone.buyTierkey(tier);
     console.log(keyId);
-    setKeyId(keyId)
+    setKeyId(keyId);
     return keyId;
   };
 
   const isAccessible = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
     const pyraZone = new PyraZone({
       chainId,
@@ -179,10 +185,10 @@ function App() {
       assetId,
       connector
     });
-    console.log("keyId:", keyId)
-    if(keyId === undefined) {
-      console.error("key id is undefined")
-      return
+    console.log("keyId:", keyId);
+    if (keyId === undefined) {
+      console.error("key id is undefined");
+      return;
     }
     await pyraZone.sellTierkey({ tier, keyId });
     console.log("Sold tierkey successfully");
@@ -192,29 +198,62 @@ function App() {
 
   /*** PyraZone read operation */
   const loadPyraZones = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
-    const res = await PyraZone.loadPyraZones({chainId, publishers: [address]});
-    console.log("loadPyraZones:", res)
-  }
+    const res = await PyraZone.loadPyraZones({
+      chainId,
+      publishers: [address]
+    });
+    console.log("loadPyraZones:", res);
+  };
 
   const loadPyraZoneTierkeyHolders = async () => {
-    const res = await PyraZone.loadPyraZoneTierkeyHolders({chainId, assetId, tier})
-    console.log("loadPyraZoneTierkeyHolders:", res)
-  }
+    const res = await PyraZone.loadPyraZoneTierkeyHolders({
+      chainId,
+      assetId,
+      tier
+    });
+    console.log("loadPyraZoneTierkeyHolders:", res);
+  };
 
   const loadPyraZoneTierkeyActivities = async () => {
-    const res = await PyraZone.loadPyraZoneTierkeyActivities({chainId, assetId, tier})
-    console.log("loadPyraZoneTierkeyActivities:", res)
-  }
+    const res = await PyraZone.loadPyraZoneTierkeyActivities({
+      chainId,
+      assetId,
+      tier
+    });
+    console.log("loadPyraZoneTierkeyActivities:", res);
+  };
+
+  const loadTierKeyBuyPrice = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      assetId,
+      connector
+    });
+
+    const res = await pyraZone.loadBuyPrice(tier);
+    console.log(ethers.utils.formatEther(res));
+  };
+
+  const loadTierKeySellPrice = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      assetId,
+      connector
+    });
+
+    const res = await pyraZone.loadSellPrice(tier);
+    console.log(ethers.utils.formatEther(res));
+  };
 
   const loadFilesInPyraZone = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
-    if(!assetId) {
-      throw new Error("Not create pyra zone")
+    if (!assetId) {
+      throw new Error("Not create pyra zone");
     }
     const pyraZone = new PyraZone({
       chainId,
@@ -229,7 +268,7 @@ function App() {
       chainId,
       connector
     });
-    const res = await pyraZone.loadFilesByTierkey(tierkeyId);
+    const res = await pyraZone.loadFilesByTierkey(tierkey);
     console.log(res);
   };
   /*** PyraZone read operation */
@@ -245,30 +284,15 @@ function App() {
       shareSymbol: "TS",
       feePoint: 100
     });
-    shareContractAddress = res.shareContractAddress;
-    revenuePoolContractAddress = res.revenuePoolContractAddress;
-    console.log({ shareContractAddress, revenuePoolContractAddress });
-    return { shareContractAddress, revenuePoolContractAddress };
-  };
-
-  const getBuyPrice = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
-    }
-    const pyraMarket = new PyraMarket({
-      chainId,
-      connector
-    });
-    const res = await pyraMarket.getBuyPrice({
-      creator: address,
-      amount: ethers.utils.parseEther("1")
-    });
-    console.log(ethers.utils.formatEther(res));
+    shareAddress = res.shareAddress;
+    revenuePoolAddress = res.revenuePoolAddress;
+    console.log({ shareAddress, revenuePoolAddress });
+    return { shareAddress, revenuePoolAddress };
   };
 
   const buyShares = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
     const pyraMarket = new PyraMarket({
       chainId,
@@ -281,24 +305,9 @@ function App() {
     console.log("Bought shares successfully");
   };
 
-  const getSellPrice = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
-    }
-    const pyraMarket = new PyraMarket({
-      chainId,
-      connector
-    });
-    const res = await pyraMarket.getSellPrice({
-      creator: address,
-      amount: ethers.utils.parseEther("1")
-    });
-    console.log(ethers.utils.formatEther(res));
-  };
-
   const sellShares = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
     const pyraMarket = new PyraMarket({
       chainId,
@@ -313,36 +322,111 @@ function App() {
   /*** PyraMarket wirte operation */
 
   /*** PyraMarket read operation */
+
   const loadPyraMarkets = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
-    const res = await PyraMarket.loadPyraMarkets({chainId, publishers: [address]})
-    console.log("loadPyraMarkets:", res)
-  }
+    let res = await PyraMarket.loadPyraMarkets({
+      chainId,
+      publishers: [address]
+    });
+
+    res = res.map((item) => ({
+      ...item,
+      total_value: ethers.utils.formatEther(item.total_value)
+    }));
+
+    shareAddress = res[0].share;
+
+    console.log("loadPyraMarkets:", res);
+  };
 
   const loadPyraMarketShareHolders = async () => {
-    const res = await PyraMarket.loadPyraMarketShareHolders({chainId, publisher: address})
-    console.log("loadPyraMarketShareHolders:", res)
-  }
+    const res = await PyraMarket.loadPyraMarketShareHolders({
+      chainId,
+      publisher: address
+    });
+    console.log("loadPyraMarketShareHolders:", res);
+  };
 
   const loadPyraMarketShareActivities = async () => {
-    const res = await PyraMarket.loadPyraMarketShareActivities({chainId, publisher: address})
-    console.log("loadPyraMarketShareActivities:", res)
-  }
+    let res = await PyraMarket.loadPyraMarketShareActivities({
+      chainId,
+      publisher: address
+    });
+    res = res.map((item) => ({
+      ...item,
+      ...(item.buy_amount && {
+        buy_amount: ethers.utils.formatEther(item.buy_amount)
+      }),
+      ...(item.buy_price && {
+        buy_price: ethers.utils.formatEther(item.buy_price)
+      }),
+      ...(item.sell_amount && {
+        sell_amount: ethers.utils.formatEther(item.sell_amount)
+      }),
+      ...(item.sell_price && {
+        sell_amount: ethers.utils.formatEther(item.sell_price)
+      })
+    }));
+    console.log("loadPyraMarketShareActivities:", res);
+  };
 
-  const getShareInfo = async () => {
-    if(!address) {
-      throw new Error("Not connect wallet")
+  const loadShareInfo = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
     }
     const pyraMarket = new PyraMarket({
       chainId,
       connector
     });
-    const res = await pyraMarket.getShareInfo(address);
-    shareContractAddress = res.share;
-    revenuePoolContractAddress = res.revenuePool;
+    const res = await pyraMarket.loadShareInfo(address);
+    shareAddress = res.shareAddress;
+    revenuePoolAddress = res.revenuePool;
     console.log(res);
+  };
+
+  const loadShareTotalSupply = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const totalSupply = await pyraMarket.loadTotalSupply(shareAddress);
+    console.log(ethers.utils.formatEther(totalSupply));
+  };
+
+  const loadShareBuyPrice = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.loadBuyPrice({
+      creator: address,
+      amount: ethers.utils.parseEther("1")
+    });
+    console.log(ethers.utils.formatEther(res));
+  };
+
+  const loadShareSellPrice = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.loadSellPrice({
+      creator: address,
+      amount: ethers.utils.parseEther("1")
+    });
+    console.log(ethers.utils.formatEther(res));
   };
   /*** PyraMarket read operation */
 
@@ -350,8 +434,8 @@ function App() {
   const stake = async () => {
     const revenuePool = new RevenuePool({
       chainId,
-      shareContractAddress,
-      revenuePoolContractAddress,
+      shareAddress,
+      revenuePoolAddress,
       connector
     });
     await revenuePool.stake(ethers.utils.parseEther("1"));
@@ -361,8 +445,8 @@ function App() {
   const unStake = async () => {
     const revenuePool = new RevenuePool({
       chainId,
-      shareContractAddress,
-      revenuePoolContractAddress,
+      shareAddress,
+      revenuePoolAddress,
       connector
     });
     await revenuePool.unStake(ethers.utils.parseEther("1"));
@@ -372,8 +456,8 @@ function App() {
   const claim = async () => {
     const revenuePool = new RevenuePool({
       chainId,
-      shareContractAddress,
-      revenuePoolContractAddress,
+      shareAddress,
+      revenuePoolAddress,
       connector
     });
     rewards = await revenuePool.claim();
@@ -383,8 +467,8 @@ function App() {
   const distribute = async () => {
     const revenuePool = new RevenuePool({
       chainId,
-      shareContractAddress,
-      revenuePoolContractAddress,
+      shareAddress,
+      revenuePoolAddress,
       connector
     });
     await revenuePool.distribute(rewards);
@@ -393,20 +477,20 @@ function App() {
   /*** RevenuePool write operation */
 
   /*** RevenuePool read operation */
-  const getTotalSupply = async () => {
-    const revenuePool = new RevenuePool({
-      chainId,
-      revenuePoolContractAddress,
-      connector
-    });
-    const totalSupply = await revenuePool.getTotalSupply();
-    console.log(ethers.utils.formatEther(totalSupply));
-  };
+  // const getRevenuePoolTotalSupply = async () => {
+  //   const revenuePool = new RevenuePool({
+  //     chainId,
+  //     revenuePoolAddress,
+  //     connector
+  //   });
+  //   const totalSupply = await revenuePool.getTotalSupply();
+  //   console.log(ethers.utils.formatEther(totalSupply));
+  // };
 
   const getRevenuePoolBalance = async () => {
     const revenuePool = new RevenuePool({
       chainId,
-      revenuePoolContractAddress,
+      revenuePoolAddress,
       connector
     });
     const revenuePoolBalance = await revenuePool.getRevenuePoolBalance();
@@ -416,22 +500,22 @@ function App() {
   const getStakingRewards = async () => {
     const revenuePool = new RevenuePool({
       chainId,
-      revenuePoolContractAddress,
+      revenuePoolAddress,
       connector
     });
     const rewards = await revenuePool.getStakingRewards();
     console.log(ethers.utils.formatEther(rewards));
   };
 
-  const calculateRevenue = async () => {
-    const revenuePool = new RevenuePool({
-      chainId,
-      revenuePoolContractAddress,
-      connector
-    });
-    const revenue = await revenuePool.calculateRevenue();
-    console.log(ethers.utils.formatEther(revenue));
-  };
+  // const calculateRevenue = async () => {
+  //   const revenuePool = new RevenuePool({
+  //     chainId,
+  //     revenuePoolAddress,
+  //     connector
+  //   });
+  //   const revenue = await revenuePool.calculateRevenue();
+  //   console.log(ethers.utils.formatEther(revenue));
+  // };
   /*** RevenuePool read operation */
 
   return (
@@ -448,46 +532,47 @@ function App() {
       <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
       <button onClick={() => sellTierkey()}>sellTierkey</button>
       <button onClick={() => loadPyraZones()}>loadPyraZones</button>
-      <button onClick={() => loadPyraZoneTierkeyHolders()}>loadPyraZoneTierkeyHolders</button>
-      <button onClick={() => loadPyraZoneTierkeyActivities()}>loadPyraZoneTierkeyActivities</button>
+      <button onClick={() => loadPyraZoneTierkeyHolders()}>
+        loadPyraZoneTierkeyHolders
+      </button>
+      <button onClick={() => loadPyraZoneTierkeyActivities()}>
+        loadPyraZoneTierkeyActivities
+      </button>
+      <button onClick={() => loadTierKeyBuyPrice()}>loadTierKeyBuyPrice</button>
+      <button onClick={() => loadTierKeySellPrice()}>
+        loadTierKeySellPrice
+      </button>
       <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
       <button onClick={() => loadFilesByTierkey()}>loadFilesByTierkey</button>
       <br />
       <button onClick={() => loadPyraMarkets()}>loadPyraMarkets</button>
-      <button onClick={() => loadPyraMarketShareHolders()}>loadPyraMarketShareHolders</button>
-      <button onClick={() => loadPyraMarketShareActivities()}>loadPyraMarketShareActivities</button>
+      <button onClick={() => loadPyraMarketShareHolders()}>
+        loadPyraMarketShareHolders
+      </button>
+      <button onClick={() => loadPyraMarketShareActivities()}>
+        loadPyraMarketShareActivities
+      </button>
       <button onClick={() => createShare()}>createShare</button>
       <button onClick={() => buyShares()}>buyShares</button>
-      <button onClick={() => getBuyPrice()}>getBuyPrice</button>
       <button onClick={() => sellShares()}>sellShares</button>
-      <button onClick={() => getSellPrice()}>getSellPrice</button>
-      <button onClick={() => getShareInfo()}>getShareInfo</button>
+      <button onClick={() => loadShareInfo()}>loadShareInfo</button>
+      <button onClick={() => loadShareTotalSupply()}>
+        loadShareTotalSupply
+      </button>
+      <button onClick={() => loadShareBuyPrice()}>loadShareBuyPrice</button>
+      <button onClick={() => loadShareSellPrice()}>loadShareSellPrice</button>
       <br />
       <button onClick={() => stake()}>stake</button>
       <button onClick={() => unStake()}>unStake</button>
       <button onClick={() => claim()}>claim</button>
       <button onClick={() => distribute()}>distribute</button>
-      <button onClick={() => getTotalSupply()}>getTotalSupply</button>
+      {/* <button onClick={() => getTotalSupply()}>getTotalSupply</button> */}
       <button onClick={() => getRevenuePoolBalance()}>
         getRevenuePoolBalance
       </button>
       <button onClick={() => getStakingRewards()}>getStakingRewards</button>
-      <button onClick={() => calculateRevenue()}>calculateRevenue</button>
+      {/* <button onClick={() => calculateRevenue()}>calculateRevenue</button> */}
       <br />
-      {/* <button onClick={() => loadCreatedTokenFiles()}>
-        loadCreatedTokenFiles
-      </button>
-      <button onClick={() => loadCollectedTokenFiles()}>
-        loadCollectedTokenFiles
-      </button> */}
-      {/* <button onClick={loadDatatokens}>loadDatatokens</button>
-      <button onClick={isDatatokenCollectedBy}>isDatatokenCollectedBy</button>
-      <button onClick={isDatatokenSharedBy}>isDatatokenSharedBy</button>
-      <br />
-      <br />
-      <button onClick={loadDataUnions}>loadDataUnions</button>
-      <button onClick={isDataUnionCollectedBy}>isDataUnionCollectedBy</button>
-      <button onClick={isDataUnionSubscribedBy}>isDataUnionSubscribedBy</button> */}
     </div>
   );
 }

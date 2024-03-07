@@ -27,7 +27,8 @@
     "graphql": "16.6.0",
     "graphql-request": "^6.1.0",
     "moralis": "^2.23.1",
-    "nanoid": "4.0.0"
+    "nanoid": "4.0.0",
+    "bls-eth-wasm": "1.1.1"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",

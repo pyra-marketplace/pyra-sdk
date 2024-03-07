@@ -7,35 +7,35 @@ import { Share__factory, RevenuePool__factory } from "./abi/typechain";
 export class RevenuePool {
   share;
   revenuePool;
-  shareContractAddress?: string;
-  revenuePoolContractAddress: string;
+  shareAddress?: string;
+  revenuePoolAddress: string;
   chainId?: ChainId;
   connector: Connector;
   signer?: Signer;
 
   constructor({
     chainId,
-    shareContractAddress,
-    revenuePoolContractAddress,
+    shareAddress,
+    revenuePoolAddress,
     connector
   }: {
     chainId?: ChainId;
-    shareContractAddress?: string;
-    revenuePoolContractAddress: string;
+    shareAddress?: string;
+    revenuePoolAddress: string;
     connector: Connector;
   }) {
-    this.shareContractAddress = shareContractAddress;
-    this.revenuePoolContractAddress = revenuePoolContractAddress;
+    this.shareAddress = shareAddress;
+    this.revenuePoolAddress = revenuePoolAddress;
     const provider = connector.getProvider();
     const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
     this.signer = ethersProvider.getSigner();
     this.chainId = chainId;
     this.connector = connector;
-    if (shareContractAddress) {
-      this.share = Share__factory.connect(shareContractAddress, this.signer);
+    if (shareAddress) {
+      this.share = Share__factory.connect(shareAddress, this.signer);
     }
     this.revenuePool = RevenuePool__factory.connect(
-      revenuePoolContractAddress,
+      revenuePoolAddress,
       this.signer
     );
   }
@@ -56,10 +56,7 @@ export class RevenuePool {
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
     });
 
-    let tx = await this.share.approve(
-      this.revenuePoolContractAddress,
-      sharesAmount
-    );
+    let tx = await this.share.approve(this.revenuePoolAddress, sharesAmount);
     await tx.wait();
 
     tx = await this.revenuePool.stake(sharesAmount);
@@ -170,51 +167,51 @@ export class RevenuePool {
     });
 
     const provider = this.signer.provider!;
-    const balance = await provider.getBalance(this.revenuePoolContractAddress);
+    const balance = await provider.getBalance(this.revenuePoolAddress);
 
     return balance;
   }
 
-  public async getTotalSupply() {
-    if (!this.chainId) {
-      throw new Error(
-        "ChainId cannot be empty, please pass in through constructor"
-      );
-    }
+  // public async getTotalSupply() {
+  //   if (!this.chainId) {
+  //     throw new Error(
+  //       "ChainId cannot be empty, please pass in through constructor"
+  //     );
+  //   }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+  //   await this.connector.getProvider().request({
+  //     method: "wallet_switchEthereumChain",
+  //     params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+  //   });
 
-    const totalSupply = await this.revenuePool.totalSupply();
+  //   const totalSupply = await this.revenuePool.totalSupply();
 
-    return totalSupply;
-  }
+  //   return totalSupply;
+  // }
 
-  public async calculateRevenue() {
-    if (!this.chainId) {
-      throw new Error(
-        "ChainId cannot be empty, please pass in through constructor"
-      );
-    }
+  // public async calculateRevenue() {
+  //   if (!this.chainId) {
+  //     throw new Error(
+  //       "ChainId cannot be empty, please pass in through constructor"
+  //     );
+  //   }
 
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
-    }
+  //   if (!this.signer) {
+  //     throw new Error("Signer not found, please collect wallet");
+  //   }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+  //   await this.connector.getProvider().request({
+  //     method: "wallet_switchEthereumChain",
+  //     params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+  //   });
 
-    const stakingRewards = await this.getStakingRewards();
+  //   const stakingRewards = await this.getStakingRewards();
 
-    const totalSupply = await this.getTotalSupply();
+  //   const totalSupply = await this.getTotalSupply();
 
-    const provider = this.signer.provider!;
-    const balance = await provider.getBalance(this.revenuePoolContractAddress);
+  //   const provider = this.signer.provider!;
+  //   const balance = await provider.getBalance(this.revenuePoolAddress);
 
-    return stakingRewards.div(totalSupply).mul(balance);
-  }
+  //   return stakingRewards.div(totalSupply).mul(balance);
+  // }
 }

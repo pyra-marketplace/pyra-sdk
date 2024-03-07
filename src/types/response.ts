@@ -24,9 +24,7 @@ export interface PyraZoneTierkeyHolderRes {
   is_burned: boolean;
 }
 
-export interface  PyraZoneTierkeyActivityRes {
-    
-}
+export interface PyraZoneTierkeyActivityRes {}
 
 export interface PyraMarketRes {
   chain_id: number;
