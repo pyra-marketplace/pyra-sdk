@@ -11,19 +11,16 @@ import { ChainId } from "../../src/types";
 
 const connector = new Connector(new MeteorWalletProvider());
 
-export const appId = "9aaae63f-3445-47d5-8785-c23dd16e4965";
+export const appId = "8fb3e03f-05d6-4a27-9960-9d113ffb1246";
 
 const postModelId =
-  "kjzl6hvfrbw6c8h0oiiv2ccikb2thxsu98sy0ydi6oshj6sjuz9dga94463anvf";
+  "kjzl6hvfrbw6c5cjz4boft9bthoj452w31ocf7wm0vrwsnz6fv2wg90bt1zsham";
 
 const chainId = ChainId.PolygonMumbai;
 
 const postVersion = "0.0.1";
 
-let indexFileId: string =
-  "kjzl6kcym7w8y9jl3xz20ppi5t4k30ubxcot6owccob6bokgftgrddmx5mo1abs";
-
-let tierkey: string = "0x6A4DBD867039Fb23897aE1EcDf348746534b2797";
+let indexFileId: string;
 
 let shareAddress: string;
 
@@ -34,9 +31,7 @@ let rewards: number;
 function App() {
   const [pkh, setPkh] = React.useState("");
   const [address, setAddress] = React.useState<string>();
-  const [assetId, setAssetId] = React.useState<string>(
-    "0x11a8093021037a7d95d3073535c345041d3461e074525765069007de9beac8c5"
-  );
+  const [assetId, setAssetId] = React.useState<string>("");
   const [tier, setTier] = React.useState(0);
   const [keyId, setKeyId] = React.useState<BigNumberish>(0);
 
@@ -87,9 +82,8 @@ function App() {
       connector
     });
 
-    const res = await pyraZone.createTierkey(10);
+    const res = await pyraZone.createTierkey(60 * 60 * 24 * 30);
     setTier(res.tier);
-    tierkey = res.tierkey;
     console.log(res);
   };
 
@@ -107,20 +101,19 @@ function App() {
       fileName: "create a file",
       fileContent: {
         modelVersion: postVersion,
-        text: "hello",
-        images: [
+        title: "test title",
+        description: "test description",
+        tags: ["test tag1", "test tag2"],
+        resources: [
           "https://bafkreib76wz6wewtkfmp5rhm3ep6tf4xjixvzzyh64nbyge5yhjno24yl4.ipfs.w3s.link"
         ],
-        videos: [],
         createdAt: date,
         updatedAt: date,
         encrypted: JSON.stringify({
-          text: true,
-          images: false,
-          videos: false
+          resources: true
         })
       },
-      tierkey
+      tier
     });
     indexFileId = res.fileContent.file.fileId;
     console.log(indexFileId);
@@ -197,6 +190,19 @@ function App() {
   /*** PyraZone wirte operation */
 
   /*** PyraZone read operation */
+  const loadZoneAsset = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const pyraZone = new PyraZone({
+      chainId,
+      assetId,
+      connector
+    });
+    const res = await pyraZone.loadZoneAsset();
+    console.log("loadPyraZones:", res);
+  };
+
   const loadPyraZones = async () => {
     if (!address) {
       throw new Error("Not connect wallet");
@@ -263,12 +269,21 @@ function App() {
     console.log(res);
   };
 
-  const loadFilesByTierkey = async () => {
+  const loadFilesByTier = async () => {
     const pyraZone = new PyraZone({
       chainId,
       connector
     });
-    const res = await pyraZone.loadFilesByTierkey(tierkey);
+    const res = await pyraZone.loadFilesByTier(tier);
+    console.log(res);
+  };
+
+  const loadFilesByPkh = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const res = await pyraZone.loadFilesByPkh({ modelId: postModelId, pkh });
     console.log(res);
   };
   /*** PyraZone read operation */
@@ -525,12 +540,13 @@ function App() {
       <hr />
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
-      <button onClick={() => createTierFile()}>createTierkeyFile</button>
+      <button onClick={() => createTierFile()}>createTierFile</button>
       <button onClick={() => buyTierkey()}>buyTierkey</button>
-      <button onClick={() => isAccessible()}>isBought</button>
+      <button onClick={() => isAccessible()}>isAccessible</button>
       <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
       <button onClick={() => sellTierkey()}>sellTierkey</button>
+      <button onClick={() => loadZoneAsset()}>loadZoneAsset</button>
       <button onClick={() => loadPyraZones()}>loadPyraZones</button>
       <button onClick={() => loadPyraZoneTierkeyHolders()}>
         loadPyraZoneTierkeyHolders
@@ -543,7 +559,8 @@ function App() {
         loadTierKeySellPrice
       </button>
       <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
-      <button onClick={() => loadFilesByTierkey()}>loadFilesByTierkey</button>
+      <button onClick={() => loadFilesByTier()}>loadFilesByTier</button>
+      <button onClick={() => loadFilesByPkh()}>loadFilesByPkh</button>
       <br />
       <button onClick={() => loadPyraMarkets()}>loadPyraMarkets</button>
       <button onClick={() => loadPyraMarketShareHolders()}>

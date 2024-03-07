@@ -136,8 +136,6 @@ export class PyraZone extends DataAssetBase {
       TradeType.Buy
     );
 
-    console.log("totalPrice:", totalPrice);
-
     const tx = await this.pyraZone.buyTierkey(this.assetId, tier, {
       value: totalPrice
     });
@@ -183,7 +181,7 @@ export class PyraZone extends DataAssetBase {
     await tx.wait();
   }
 
-  public async getZoneAsset() {
+  public async loadZoneAsset() {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -365,12 +363,12 @@ export class PyraZone extends DataAssetBase {
     modelId,
     fileName,
     fileContent,
-    tierkey
+    tier
   }: {
     modelId: string;
     fileName?: string;
     fileContent: FileContent;
-    tierkey: string;
+    tier: number;
   }) {
     if (!this.assetId) {
       throw new Error(
@@ -387,13 +385,16 @@ export class PyraZone extends DataAssetBase {
         "AssetContract cannot be empty, please pass in through constructor"
       );
     }
-    if (!tierkey) {
-      throw new Error("Tierkey cannot be empty");
+    if (!tier && tier !== 0) {
+      throw new Error("Tier cannot be empty");
     }
 
     const folders = await this.connector.runOS({
       method: SYSTEM_CALL.loadFolderTrees
     });
+
+    const zoneAsset = await this.loadZoneAsset();
+    const tierkey = zoneAsset.tierkeys[tier];
 
     const folder = Object.values(folders).find(
       (folder) =>
@@ -437,6 +438,7 @@ export class PyraZone extends DataAssetBase {
         folderId
       }
     });
+
     const applyConditionsToFileRes = await this.applyConditionsToFile({
       fileId: res.fileContent.file.fileId,
       linkedAsset: {
@@ -445,20 +447,14 @@ export class PyraZone extends DataAssetBase {
         chainId: this.chainId
       },
       attached: {
-        tierkey
+        tier
       }
     });
 
     return applyConditionsToFileRes;
   }
 
-  public async addTierFile({
-    fileId,
-    tierkey
-  }: {
-    fileId: string;
-    tierkey: string;
-  }) {
+  public async addTierFile({ fileId, tier }: { fileId: string; tier: number }) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -474,21 +470,12 @@ export class PyraZone extends DataAssetBase {
         "AssetContract cannot be empty, please pass in through constructor"
       );
     }
-    if (!tierkey) {
-      throw new Error("Tierkey cannot be empty");
+    if (!tier && tier !== 0) {
+      throw new Error("Tier cannot be empty");
     }
 
-    const applyConditionsToFileRes = await this.applyConditionsToFile({
-      fileId,
-      linkedAsset: {
-        assetId: this.assetId,
-        assetContract: this.assetContract,
-        chainId: this.chainId
-      },
-      attached: {
-        tierkey
-      }
-    });
+    const zoneAsset = await this.loadZoneAsset();
+    const tierkey = zoneAsset.tierkeys[tier];
 
     const folders = await this.connector.runOS({
       method: SYSTEM_CALL.loadFolderTrees
@@ -527,6 +514,18 @@ export class PyraZone extends DataAssetBase {
       folderId = res.newFolder.folderId;
     }
 
+    const applyConditionsToFileRes = await this.applyConditionsToFile({
+      fileId,
+      linkedAsset: {
+        assetId: this.assetId,
+        assetContract: this.assetContract,
+        chainId: this.chainId
+      },
+      attached: {
+        tier
+      }
+    });
+
     await this.connector.runOS({
       method: SYSTEM_CALL.moveFiles,
       params: {
@@ -548,16 +547,6 @@ export class PyraZone extends DataAssetBase {
       params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
     });
 
-    const res2 = await this.connector.runOS({
-      method: SYSTEM_CALL.loadFilesBy,
-      params: {
-        modelId:
-          "kjzl6hvfrbw6c8h0oiiv2ccikb2thxsu98sy0ydi6oshj6sjuz9dga94463anvf",
-        pkh: "did:pkh:eip155:1:0x11625be3fbD0e98Ea1fA7569098467F026d96D05"
-      }
-    });
-    console.log({ res2 });
-
     return Object.assign(
       {},
       ...Object.values(res).map((item) =>
@@ -571,10 +560,13 @@ export class PyraZone extends DataAssetBase {
     );
   }
 
-  public async loadFilesByTierkey(tierkey: string) {
-    if (!tierkey) {
-      throw new Error("Tierkey cannot be empty");
+  public async loadFilesByTier(tier: number) {
+    if (!tier && tier !== 0) {
+      throw new Error("Tier cannot be empty");
     }
+
+    const zoneAsset = await this.loadZoneAsset();
+    const tierkey = zoneAsset.tierkeys[tier];
 
     const res = await this.connector.runOS({
       method: SYSTEM_CALL.loadFoldersBy,
@@ -592,6 +584,23 @@ export class PyraZone extends DataAssetBase {
         )
       )
     );
+  }
+
+  public async loadFilesByPkh({
+    modelId,
+    pkh
+  }: {
+    modelId: string;
+    pkh: string;
+  }) {
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFilesBy,
+      params: {
+        modelId,
+        pkh
+      }
+    });
+    return res;
   }
 
   static async loadPyraZones({
