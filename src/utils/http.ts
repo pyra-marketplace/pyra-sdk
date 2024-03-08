@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const http = axios.create({
-  baseURL: "https://pyra.dataverse-os.com/api/v1/",
+  baseURL: "https://pyra.dataverse.art/api/v1/",
   headers: {
     accept: "application/json"
   }
