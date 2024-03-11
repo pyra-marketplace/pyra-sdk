@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@lit-protocol/constants": "^2.2.61",
-    "@meteor-web3/connector": "^1.0.30",
-    "@pyra-marketplace/assets-sdk": "^1.0.4",
+    "@meteor-web3/connector": "^1.0.32",
+    "@pyra-marketplace/assets-sdk": "^1.0.5",
     "axios": "^1.5.1",
     "ethers": "^5.7.2",
     "graphql": "16.6.0",

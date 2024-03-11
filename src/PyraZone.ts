@@ -13,10 +13,7 @@ import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import {
-  abiCoder,
-  getChainNameFromChainId
-} from "@pyra-marketplace/assets-sdk";
+import { abiCoder } from "@pyra-marketplace/assets-sdk";
 import {
   ChainId,
   PyraZoneRes,
@@ -362,7 +359,15 @@ export class PyraZone extends DataAssetBase {
     return res;
   }
 
-  async applyConditionsToFolder(folderId: string) {
+  async applyConditionsToFolder({
+    folderId,
+    linkedAsset,
+    attached
+  }: {
+    folderId?: string;
+    linkedAsset?: DataAsset;
+    attached?: Attached;
+  }) {
     this.signer &&
       this.addGeneralCondition([
         {
@@ -379,50 +384,48 @@ export class PyraZone extends DataAssetBase {
         }
       ]);
 
-    this.chainId &&
-      this.assetContract &&
-      this.addSourceCondition({
-        acl: {
-          contractAddress: this.assetContract,
-          conditionType: "evmContract",
-          chain: getChainNameFromChainId(this.chainId),
-          functionName: "isAccessible",
-          functionAbi: {
-            inputs: [
-              {
-                internalType: "bytes32",
-                name: "assetId",
-                type: "bytes32"
-              },
-              {
-                internalType: "address",
-                name: "account",
-                type: "address"
-              },
-              {
-                internalType: "uint256",
-                name: "tier",
-                type: "uint256"
-              }
-            ],
-            name: "isAccessible",
-            outputs: [
-              {
-                internalType: "bool",
-                name: "",
-                type: "bool"
-              }
-            ],
-            stateMutability: "view",
-            type: "function"
-          },
-          returnValueTest: {
-            key: "",
-            comparator: "=",
-            value: "true"
-          }
+    await this.addLinkCondition({
+      acl: {
+        conditionType: "evmContract",
+        functionName: "isAccessible",
+        functionAbi: {
+          inputs: [
+            {
+              internalType: "bytes32",
+              name: "assetId",
+              type: "bytes32"
+            },
+            {
+              internalType: "address",
+              name: "account",
+              type: "address"
+            },
+            {
+              internalType: "uint256",
+              name: "tier",
+              type: "uint256"
+            }
+          ],
+          name: "isAccessible",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool"
+            }
+          ],
+          stateMutability: "view",
+          type: "function"
+        },
+        returnValueTest: {
+          key: "",
+          comparator: "=",
+          value: "true"
         }
-      });
+      },
+      linkedAsset,
+      attached
+    });
 
     const res = await this.applyFolderConditions(folderId);
 
@@ -478,6 +481,7 @@ export class PyraZone extends DataAssetBase {
     );
 
     let folderId = folder?.folderId;
+
     if (!folder) {
       const res = await this.connector.runOS({
         method: SYSTEM_CALL.createFolder,
@@ -497,7 +501,17 @@ export class PyraZone extends DataAssetBase {
         }
       });
       folderId = res.newFolder.folderId;
-      await this.applyConditionsToFolder(folderId);
+      await this.applyConditionsToFolder({
+        folderId,
+        linkedAsset: {
+          assetId: this.assetId,
+          assetContract: this.assetContract,
+          chainId: this.chainId
+        },
+        attached: {
+          tier
+        }
+      });
     }
 
     const res = await this.connector.runOS({
@@ -583,7 +597,17 @@ export class PyraZone extends DataAssetBase {
         }
       });
       folderId = res.newFolder.folderId;
-      await this.applyConditionsToFolder(folderId);
+      await this.applyConditionsToFolder({
+        folderId,
+        linkedAsset: {
+          assetId: this.assetId,
+          assetContract: this.assetContract,
+          chainId: this.chainId
+        },
+        attached: {
+          tier
+        }
+      });
     }
 
     const applyConditionsToFileRes = await this.applyConditionsToFile({
