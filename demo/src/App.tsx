@@ -11,14 +11,16 @@ import { ChainId } from "../../src/types";
 
 const connector = new Connector(new MeteorWalletProvider());
 
-export const appId = "8fb3e03f-05d6-4a27-9960-9d113ffb1246";
+export const appId = "fc376fdc-fe50-42fa-8b91-44c66b67bfbf";
 
 const postModelId =
-  "kjzl6hvfrbw6c5cjz4boft9bthoj452w31ocf7wm0vrwsnz6fv2wg90bt1zsham";
+  "kjzl6hvfrbw6camfd31qitqxhw7vd2z3lkjgfvqcw8njbo1g07vfv9osfx1l33y";
 
 const chainId = ChainId.PolygonMumbai;
 
 const postVersion = "0.0.1";
+
+let folderId: string;
 
 let indexFileId: string;
 
@@ -148,30 +150,6 @@ function App() {
     return res;
   };
 
-  const unlockFile = async () => {
-    try {
-      const res = await connector.runOS({
-        method: SYSTEM_CALL.unlockFile,
-        params: indexFileId
-      });
-      console.log(res);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const isFileUnlocked = async () => {
-    try {
-      const res = await connector.runOS({
-        method: SYSTEM_CALL.isFileUnlocked,
-        params: indexFileId
-      });
-      console.log(res);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const sellTierkey = async () => {
     const pyraZone = new PyraZone({
       chainId,
@@ -284,6 +262,37 @@ function App() {
       connector
     });
     const res = await pyraZone.loadFilesByPkh({ modelId: postModelId, pkh });
+    console.log(res);
+  };
+
+  const unlockFile = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const res = await pyraZone.unlockFile(indexFileId);
+    console.log(res);
+  };
+
+  const loadFolderInPyraZone = async () => {
+    if (!assetId) {
+      throw new Error("Not create pyra zone");
+    }
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const folder = await pyraZone.loadFolderInPyraZone(assetId);
+    folderId = folder?.folderId;
+    console.log(folder);
+  };
+
+  const unlockFolder = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const res = await pyraZone.unlockFolder(folderId);
     console.log(res);
   };
   /*** PyraZone read operation */
@@ -543,8 +552,7 @@ function App() {
       <button onClick={() => createTierFile()}>createTierFile</button>
       <button onClick={() => buyTierkey()}>buyTierkey</button>
       <button onClick={() => isAccessible()}>isAccessible</button>
-      <button onClick={() => unlockFile()}>unlockFile</button>
-      <button onClick={() => isFileUnlocked()}>isFileUnlocked</button>
+
       <button onClick={() => sellTierkey()}>sellTierkey</button>
       <button onClick={() => loadZoneAsset()}>loadZoneAsset</button>
       <button onClick={() => loadPyraZones()}>loadPyraZones</button>
@@ -558,7 +566,12 @@ function App() {
       <button onClick={() => loadTierKeySellPrice()}>
         loadTierKeySellPrice
       </button>
+      <button onClick={() => loadFolderInPyraZone()}>
+        loadFolderInPyraZone
+      </button>
       <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
+      <button onClick={() => unlockFolder()}>unlockFolder</button>
+      <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => loadFilesByTier()}>loadFilesByTier</button>
       <button onClick={() => loadFilesByPkh()}>loadFilesByPkh</button>
       <br />

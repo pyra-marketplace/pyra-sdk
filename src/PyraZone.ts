@@ -13,7 +13,10 @@ import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import { abiCoder } from "@pyra-marketplace/assets-sdk";
+import {
+  abiCoder,
+  getChainNameFromChainId
+} from "@pyra-marketplace/assets-sdk";
 import {
   ChainId,
   PyraZoneRes,
@@ -359,6 +362,73 @@ export class PyraZone extends DataAssetBase {
     return res;
   }
 
+  async applyConditionsToFolder(folderId: string) {
+    this.signer &&
+      this.addGeneralCondition([
+        {
+          conditionType: "evmBasic",
+          contractAddress: "",
+          standardContractType: "",
+          chain: "ethereum",
+          method: "",
+          parameters: [":userAddress"],
+          returnValueTest: {
+            comparator: "=",
+            value: await this.signer.getAddress()
+          }
+        }
+      ]);
+
+    this.chainId &&
+      this.assetContract &&
+      this.addSourceCondition({
+        acl: {
+          contractAddress: this.assetContract,
+          conditionType: "evmContract",
+          chain: getChainNameFromChainId(this.chainId),
+          functionName: "isAccessible",
+          functionAbi: {
+            inputs: [
+              {
+                internalType: "bytes32",
+                name: "assetId",
+                type: "bytes32"
+              },
+              {
+                internalType: "address",
+                name: "account",
+                type: "address"
+              },
+              {
+                internalType: "uint256",
+                name: "tier",
+                type: "uint256"
+              }
+            ],
+            name: "isAccessible",
+            outputs: [
+              {
+                internalType: "bool",
+                name: "",
+                type: "bool"
+              }
+            ],
+            stateMutability: "view",
+            type: "function"
+          },
+          returnValueTest: {
+            key: "",
+            comparator: "=",
+            value: "true"
+          }
+        }
+      });
+
+    const res = await this.applyFolderConditions(folderId);
+
+    return res;
+  }
+
   public async createTierFile({
     modelId,
     fileName,
@@ -413,7 +483,7 @@ export class PyraZone extends DataAssetBase {
         method: SYSTEM_CALL.createFolder,
         params: {
           folderName: `assetId:${this.assetId},tierkey:${tierkey}`,
-          folderType: FolderType.PrivateFolderType,
+          folderType: FolderType.UnionFolderType,
           signals: [
             {
               type: SignalType.asset,
@@ -427,6 +497,7 @@ export class PyraZone extends DataAssetBase {
         }
       });
       folderId = res.newFolder.folderId;
+      await this.applyConditionsToFolder(folderId);
     }
 
     const res = await this.connector.runOS({
@@ -498,7 +569,7 @@ export class PyraZone extends DataAssetBase {
         method: SYSTEM_CALL.createFolder,
         params: {
           folderName: `assetId:${this.assetId},tierkey:${tierkey}`,
-          folderType: FolderType.PrivateFolderType,
+          folderType: FolderType.UnionFolderType,
           signals: [
             {
               type: SignalType.asset,
@@ -512,6 +583,7 @@ export class PyraZone extends DataAssetBase {
         }
       });
       folderId = res.newFolder.folderId;
+      await this.applyConditionsToFolder(folderId);
     }
 
     const applyConditionsToFileRes = await this.applyConditionsToFile({
@@ -535,6 +607,35 @@ export class PyraZone extends DataAssetBase {
     });
 
     return applyConditionsToFileRes;
+  }
+
+  public async loadFolderInPyraZone(pyraZoneId: string) {
+    if (!pyraZoneId) {
+      throw new Error("PyraZoneId cannot be empty");
+    }
+
+    const folders = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFoldersBy,
+      params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
+    });
+
+    return Object.values(folders)[0];
+  }
+
+  public async loadFoldersByTier(tier: number) {
+    if (!tier && tier !== 0) {
+      throw new Error("Tier cannot be empty");
+    }
+
+    const zoneAsset = await this.loadZoneAsset();
+    const tierkey = zoneAsset.tierkeys[tier];
+
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFoldersBy,
+      params: { signals: [{ type: SignalType.asset, id: tierkey }] }
+    });
+
+    return res;
   }
 
   public async loadFilesInPyraZone(pyraZoneId: string) {
@@ -667,5 +768,21 @@ export class PyraZone extends DataAssetBase {
       }
     });
     return tierkeyActivities;
+  }
+
+  async unlockFile(fileId: string) {
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.unlockFile,
+      params: fileId
+    });
+    return res;
+  }
+
+  async unlockFolder(folderId: string) {
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.unlockFolder,
+      params: folderId
+    });
+    return res;
   }
 }
