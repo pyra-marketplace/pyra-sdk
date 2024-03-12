@@ -221,16 +221,28 @@ export class PyraMarket extends DataAssetBase {
 
   static async loadPyraMarkets({
     chainId,
-    publishers
+    publishers,
+    page,
+    pageSize,
+    orderBy,
+    orderType
   }: {
     chainId?: number;
     publishers: string[];
+    page?: number;
+    pageSize?: number;
+    orderBy?: "block_number" | "share_sales" | "total_value" | "total_volume" | "total_supply";
+    orderType?: "asc" | "desc";
   }) {
     const pyraMarkets: PyraMarketRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-market`,
       method: "get",
       params: {
-        publishers: publishers.join(",")
+        publishers: publishers.join(","),
+        page,
+        page_size: pageSize,
+        order_by: orderBy,
+        order_type: orderType,
       }
     });
     return pyraMarkets;
@@ -239,18 +251,30 @@ export class PyraMarket extends DataAssetBase {
   static async loadPyraMarketShareHolders({
     chainId,
     share,
-    publisher
+    publisher,
+    page,
+    pageSize,
+    orderBy,
+    orderType
   }: {
     chainId?: number;
     share?: string;
     publisher?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: "total_amount";
+    orderType?: "asc" | "desc";
   }) {
     const shareHolders: PyraMarketShareHolderRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/holder`,
       method: "get",
       params: {
         share,
-        publisher
+        publisher,
+        page,
+        page_size: pageSize,
+        order_by: orderBy,
+        order_type: orderType,
       }
     });
     return shareHolders;
@@ -259,18 +283,30 @@ export class PyraMarket extends DataAssetBase {
   static async loadPyraMarketShareActivities({
     chainId,
     share,
-    publisher
+    publisher,
+    page,
+    pageSize,
+    orderBy,
+    orderType
   }: {
     chainId?: number;
     share?: string;
     publisher?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: "block_number";
+    orderType?: "asc" | "desc";
   }) {
     const shareActivities: PyraMarketShareActivityRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/activity`,
       method: "get",
       params: {
         share,
-        publisher
+        publisher,
+        page,
+        page_size: pageSize,
+        order_by: orderBy,
+        order_type: orderType,
       }
     });
     return shareActivities;

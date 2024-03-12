@@ -214,6 +214,15 @@ function App() {
     console.log("loadPyraZones:", res);
   };
 
+  const loadTrendingPyraZones = async () => {
+    const ONE_WEEK = 3500 * 24 * 7;
+    const res = await PyraZone.loadPyraZones({
+      chainId,
+      recentTime: ONE_WEEK
+    })
+    console.log("loadTrendingPyraZones:", res);
+  }
+
   const loadPyraZoneTierkeyHolders = async () => {
     const res = await PyraZone.loadPyraZoneTierkeyHolders({
       chainId,
@@ -360,7 +369,11 @@ function App() {
   const loadPyraMarketShareHolders = async () => {
     const res = await PyraMarket.loadPyraMarketShareHolders({
       chainId,
-      publisher: address
+      publisher: address,
+      orderBy: "total_amount",
+      orderType: "desc",
+      page: 1,
+      pageSize: 10
     });
     console.log("loadPyraMarketShareHolders:", res);
   };
@@ -368,7 +381,11 @@ function App() {
   const loadPyraMarketShareActivities = async () => {
     let res = await PyraMarket.loadPyraMarketShareActivities({
       chainId,
-      publisher: address
+      publisher: address,
+      orderBy: "block_number",
+      orderType: "desc",
+      page: 1,
+      pageSize: 10
     });
     res = res.map((item) => ({
       ...item,
@@ -548,6 +565,7 @@ function App() {
       <button onClick={() => sellTierkey()}>sellTierkey</button>
       <button onClick={() => loadZoneAsset()}>loadZoneAsset</button>
       <button onClick={() => loadPyraZones()}>loadPyraZones</button>
+      <button onClick={() => loadTrendingPyraZones()}>loadTrendingPyraZones</button>
       <button onClick={() => loadPyraZoneTierkeyHolders()}>
         loadPyraZoneTierkeyHolders
       </button>

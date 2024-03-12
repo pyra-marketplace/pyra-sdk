@@ -606,18 +606,33 @@ export class PyraZone extends DataAssetBase {
   static async loadPyraZones({
     chainId,
     assetIds,
-    publishers
+    publishers,
+    page,
+    pageSize,
+    orderBy,
+    orderType,
+    recentTime
   }: {
     chainId?: number;
     assetIds?: string[];
     publishers?: string[];
+    page?: number;
+    pageSize?: number;
+    orderBy?: "block_number" | "tierkey_sales";
+    orderType?: "asc" | "desc";
+    recentTime?: number
   }) {
     const pyraZones: PyraZoneRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
       method: "get",
       params: {
         asset_ids: assetIds?.join(","),
-        publishers: publishers?.join(",")
+        publishers: publishers?.join(","),
+        page,
+        page_size: pageSize,
+        order_by: orderBy,
+        order_type: orderType,
+        recent_time: recentTime
       }
     });
     return pyraZones;
@@ -627,12 +642,20 @@ export class PyraZone extends DataAssetBase {
     chainId,
     assetId,
     tier,
-    tierkey
+    tierkey,
+    page,
+    pageSize,
+    orderBy,
+    orderType
   }: {
     chainId?: number;
     assetId?: string;
     tier?: number;
     tierkey?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: "key_id";
+    orderType?: "asc" | "desc";
   }) {
     const tierkeyHolders: PyraZoneTierkeyHolderRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/holder`,
@@ -640,7 +663,11 @@ export class PyraZone extends DataAssetBase {
       params: {
         asset_id: assetId,
         tier,
-        tierkey
+        tierkey,
+        page,
+        page_size: pageSize,
+        order_by: orderBy,
+        order_type: orderType,
       }
     });
     return tierkeyHolders;
@@ -650,12 +677,20 @@ export class PyraZone extends DataAssetBase {
     chainId,
     assetId,
     tier,
-    tierkey
+    tierkey,
+    page,
+    pageSize,
+    orderBy,
+    orderType
   }: {
     chainId?: number;
     assetId?: string;
     tier?: number;
     tierkey?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: "block_number";
+    orderType?: "asc" | "desc";
   }) {
     const tierkeyActivities: PyraZoneTierkeyActivityRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/activity`,
@@ -663,7 +698,11 @@ export class PyraZone extends DataAssetBase {
       params: {
         asset_id: assetId,
         tier,
-        tierkey
+        tierkey,
+        page,
+        page_size: pageSize,
+        order_by: orderBy,
+        order_type: orderType,
       }
     });
     return tierkeyActivities;
