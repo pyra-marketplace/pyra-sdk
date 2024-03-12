@@ -11,10 +11,10 @@ import { ChainId } from "../../src/types";
 
 const connector = new Connector(new MeteorWalletProvider());
 
-const appId = "50a7cebe-8bf3-4c42-8076-48ac413ad977";
+const appId = "e104c799-3cb6-4f4d-ba8a-16649cd9701a";
 
 const postModelId =
-  "kjzl6hvfrbw6c5zq5f5tu72zfas4h192bq4ippfhp6p72hmv80e9umr1sd90l2h";
+  "kjzl6hvfrbw6c8nivefcu4rozay0y3rzm8pomdsxl4abfc3n1rokft2m04flbd4";
 
 const chainId = ChainId.PolygonMumbai;
 
