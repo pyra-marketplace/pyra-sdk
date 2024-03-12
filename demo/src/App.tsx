@@ -197,9 +197,9 @@ function App() {
     const res = await PyraZone.loadPyraZones({
       chainId,
       recentTime: ONE_WEEK
-    })
+    });
     console.log("loadTrendingPyraZones:", res);
-  }
+  };
 
   const loadPyraZoneTierkeyHolders = async () => {
     const res = await PyraZone.loadPyraZoneTierkeyHolders({
@@ -573,7 +573,9 @@ function App() {
       <button onClick={() => sellTierkey()}>sellTierkey</button>
       <button onClick={() => loadZoneAsset()}>loadZoneAsset</button>
       <button onClick={() => loadPyraZones()}>loadPyraZones</button>
-      <button onClick={() => loadTrendingPyraZones()}>loadTrendingPyraZones</button>
+      <button onClick={() => loadTrendingPyraZones()}>
+        loadTrendingPyraZones
+      </button>
       <button onClick={() => loadPyraZoneTierkeyHolders()}>
         loadPyraZoneTierkeyHolders
       </button>
