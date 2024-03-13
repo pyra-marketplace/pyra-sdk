@@ -370,7 +370,7 @@ function App() {
       total_value: ethers.utils.formatEther(item.total_value)
     }));
 
-    shareAddress = res[0].share;
+    shareAddress = res[0]?.share;
 
     console.log("loadPyraMarkets:", res);
   };
