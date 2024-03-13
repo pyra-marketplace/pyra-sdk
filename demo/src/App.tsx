@@ -189,6 +189,9 @@ function App() {
       chainId,
       publishers: [address]
     });
+    if (res.length > 0) {
+      setAssetId(res[0].asset_id);
+    }
     console.log("loadPyraZones:", res);
   };
 
