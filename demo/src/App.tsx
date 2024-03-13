@@ -245,12 +245,6 @@ function App() {
   };
 
   const loadFilesInPyraZone = async () => {
-    if (!address) {
-      throw new Error("Not connect wallet");
-    }
-    if (!assetId) {
-      throw new Error("Not create pyra zone");
-    }
     const pyraZone = new PyraZone({
       chainId,
       connector
@@ -287,9 +281,6 @@ function App() {
   };
 
   const loadFolderInPyraZone = async () => {
-    if (!assetId) {
-      throw new Error("Not create pyra zone");
-    }
     const pyraZone = new PyraZone({
       chainId,
       connector
