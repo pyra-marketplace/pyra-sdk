@@ -15,16 +15,15 @@ import {
 } from "@pyra-marketplace/assets-sdk/data-asset";
 import { abiCoder } from "@pyra-marketplace/assets-sdk";
 import {
-  ChainId,
   PyraZoneRes,
   PyraZoneTierkeyActivityRes,
-  PyraZoneTierkeyHolderRes,
-  ZoneAsset
+  PyraZoneTierkeyHolderRes
 } from "./types";
 import { PyraZone__factory } from "./abi/typechain";
-import { DEPLOYED_ADDRESSES } from "./addresses";
+import { DEPLOYED_ADDRESSES } from "./configs";
 import { TradeType } from "./types";
 import { http } from "./utils";
+import { retryRPC } from "./utils/retryRPC";
 
 export class PyraZone extends DataAssetBase {
   pyraZone;
@@ -34,11 +33,12 @@ export class PyraZone extends DataAssetBase {
     connector,
     assetId
   }: {
-    chainId?: ChainId;
+    chainId?: number;
     connector: Connector;
     assetId?: string;
   }) {
-    const assetContract = DEPLOYED_ADDRESSES[chainId!]?.PyraZone;
+    const assetContract =
+      DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]?.PyraZone;
     super({
       chainId,
       connector,
@@ -194,12 +194,20 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const zoneAsset = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraZone__factory",
+      assetContract: this.assetContract,
+      method: "getZoneAsset",
+      params: [this.assetId]
     });
 
-    const zoneAsset: ZoneAsset = await this.pyraZone.getZoneAsset(this.assetId);
     return zoneAsset;
   }
 
@@ -216,16 +224,19 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
 
-    const price = await this.pyraZone.getTierkeyPrice(
-      this.assetId,
-      tier,
-      TradeType.Buy
-    );
+    const price = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraZone__factory",
+      assetContract: this.assetContract,
+      method: "getTierkeyPrice",
+      params: [this.assetId, tier, TradeType.Buy]
+    });
 
     return price;
   }
@@ -243,16 +254,19 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
 
-    const price = await this.pyraZone.getTierkeyPrice(
-      this.assetId,
-      tier,
-      TradeType.Sell
-    );
+    const price = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraZone__factory",
+      assetContract: this.assetContract,
+      method: "getTierkeyPrice",
+      params: [this.assetId, tier, TradeType.Sell]
+    });
 
     return price;
   }
@@ -276,12 +290,19 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
 
-    const res = await this.pyraZone.isAccessible(this.assetId, account, tier);
+    const res = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraZone__factory",
+      assetContract: this.assetContract,
+      method: "isAccessible",
+      params: [this.assetId, account, tier]
+    });
 
     return res;
   }
@@ -745,7 +766,7 @@ export class PyraZone extends DataAssetBase {
     pageSize?: number;
     orderBy?: "block_number" | "tierkey_sales";
     orderType?: "asc" | "desc";
-    recentTime?: number
+    recentTime?: number;
   }) {
     const pyraZones: PyraZoneRes[] = await http.request({
       url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
@@ -792,7 +813,7 @@ export class PyraZone extends DataAssetBase {
         page,
         page_size: pageSize,
         order_by: orderBy,
-        order_type: orderType,
+        order_type: orderType
       }
     });
     return tierkeyHolders;
@@ -827,7 +848,7 @@ export class PyraZone extends DataAssetBase {
         page,
         page_size: pageSize,
         order_by: orderBy,
-        order_type: orderType,
+        order_type: orderType
       }
     });
     return tierkeyActivities;

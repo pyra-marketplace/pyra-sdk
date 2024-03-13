@@ -1,8 +1,9 @@
 import { BigNumberish } from "ethers";
 
 export enum ChainId {
-  // Polygon = 137,
-  PolygonMumbai = 80001
+  Polygon = 137,
+  PolygonMumbai = 80001,
+  Ethereum = 1
 }
 
 export interface ZoneAsset {

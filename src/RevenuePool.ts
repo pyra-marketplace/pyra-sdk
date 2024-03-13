@@ -3,6 +3,7 @@ import { Connector } from "@meteor-web3/connector";
 
 import { ChainId } from "./types";
 import { Share__factory, RevenuePool__factory } from "./abi/typechain";
+import { retryRPC } from "./utils/retryRPC";
 
 export class RevenuePool {
   share;
@@ -111,14 +112,19 @@ export class RevenuePool {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    if (!this.revenuePoolAddress) {
+      throw new Error(
+        "RevenuePoolAddress cannot be empty, please pass in through constructor"
+      );
+    }
 
-    const rewards = await this.revenuePool.getStakingRewards(
-      this.connector.address
-    );
+    const rewards = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "revenuePool__factory",
+      assetContract: this.revenuePoolAddress,
+      method: "getStakingRewards",
+      params: [this.connector.address]
+    });
 
     return rewards;
   }
@@ -157,17 +163,11 @@ export class RevenuePool {
       );
     }
 
-    if (!this.signer) {
-      throw new Error("Signer not found, please collect wallet");
-    }
-
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    const balance = await retryRPC({
+      chainId: this.chainId,
+      method: "getBalance",
+      params: [this.revenuePoolAddress]
     });
-
-    const provider = this.signer.provider!;
-    const balance = await provider.getBalance(this.revenuePoolAddress);
 
     return balance;
   }

@@ -3,18 +3,18 @@ import { Connector } from "@meteor-web3/connector";
 
 import { DataAssetBase } from "@pyra-marketplace/assets-sdk/data-asset";
 import {
-  ChainId,
   PyraMarketRes,
   PyraMarketShareActivityRes,
   PyraMarketShareHolderRes
 } from "./types";
-import { PyraMarket__factory, Share__factory } from "./abi/typechain";
-import { DEPLOYED_ADDRESSES } from "./addresses";
+import { PyraMarket__factory } from "./abi/typechain";
+import { DEPLOYED_ADDRESSES } from "./configs";
 import { http } from "./utils";
+import { retryRPC } from "./utils/retryRPC";
 
 export class PyraMarket extends DataAssetBase {
   pyraMarket;
-  chainId?: ChainId;
+  chainId?: number;
   connector: Connector;
   signer?: Signer;
 
@@ -22,7 +22,7 @@ export class PyraMarket extends DataAssetBase {
     chainId,
     connector
   }: {
-    chainId?: ChainId;
+    chainId?: number;
     connector: Connector;
   }) {
     super({
@@ -34,9 +34,11 @@ export class PyraMarket extends DataAssetBase {
     this.signer = ethersProvider.getSigner();
     this.chainId = chainId;
     this.connector = connector;
-
+    this.assetContract =
+      DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
+        ?.PyraMarket;
     this.pyraMarket = PyraMarket__factory.connect(
-      DEPLOYED_ADDRESSES[chainId!]?.PyraMarket,
+      this.assetContract,
       this.signer
     );
   }
@@ -91,14 +93,21 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const price = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraMarket__factory",
+      assetContract: this.assetContract,
+      method: "getBuyPrice",
+      params: [creator, amount]
     });
 
-    const totalPrice = await this.pyraMarket.getBuyPrice(creator, amount);
-
-    return totalPrice;
+    return price;
   }
 
   public async loadSellPrice({
@@ -114,14 +123,21 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const price = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraMarket__factory",
+      assetContract: this.assetContract,
+      method: "getSellPrice",
+      params: [creator, amount]
     });
 
-    const totalPrice = await this.pyraMarket.getSellPrice(creator, amount);
-
-    return totalPrice;
+    return price;
   }
 
   public async buyShares({
@@ -137,6 +153,12 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
     await this.connector.getProvider().request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: `0x${this.chainId.toString(16)}` }]
@@ -146,9 +168,11 @@ export class PyraMarket extends DataAssetBase {
       creator,
       amount
     );
+
     const tx = await this.pyraMarket.buyShares(creator, amount, {
       value: totalPrice
     });
+
     await tx.wait();
   }
 
@@ -171,6 +195,7 @@ export class PyraMarket extends DataAssetBase {
     });
 
     const tx = await this.pyraMarket.sellShares(creator, amount);
+
     await tx.wait();
   }
 
@@ -181,12 +206,19 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
 
-    const shareInfo = await this.pyraMarket.getShareInfo(creator);
+    const shareInfo = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraMarket__factory",
+      assetContract: this.assetContract,
+      method: "getShareInfo",
+      params: [creator]
+    });
 
     return {
       revenuePool: shareInfo.revenuePool,
@@ -203,20 +235,15 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.signer) {
-      throw new Error("Signer not found, please connect wallet");
-    }
-
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    const totalSupply = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "share__factory",
+      assetContract: shareAddress,
+      method: "totalSupply",
+      params: []
     });
 
-    const share = Share__factory.connect(shareAddress, this.signer);
-
-    const res = await share.totalSupply();
-
-    return res;
+    return totalSupply;
   }
 
   static async loadPyraMarkets({
@@ -231,7 +258,12 @@ export class PyraMarket extends DataAssetBase {
     publishers: string[];
     page?: number;
     pageSize?: number;
-    orderBy?: "block_number" | "share_sales" | "total_value" | "total_volume" | "total_supply";
+    orderBy?:
+      | "block_number"
+      | "share_sales"
+      | "total_value"
+      | "total_volume"
+      | "total_supply";
     orderType?: "asc" | "desc";
   }) {
     const pyraMarkets: PyraMarketRes[] = await http.request({
@@ -242,7 +274,7 @@ export class PyraMarket extends DataAssetBase {
         page,
         page_size: pageSize,
         order_by: orderBy,
-        order_type: orderType,
+        order_type: orderType
       }
     });
     return pyraMarkets;
@@ -274,7 +306,7 @@ export class PyraMarket extends DataAssetBase {
         page,
         page_size: pageSize,
         order_by: orderBy,
-        order_type: orderType,
+        order_type: orderType
       }
     });
     return shareHolders;
@@ -306,7 +338,7 @@ export class PyraMarket extends DataAssetBase {
         page,
         page_size: pageSize,
         order_by: orderBy,
-        order_type: orderType,
+        order_type: orderType
       }
     });
     return shareActivities;
