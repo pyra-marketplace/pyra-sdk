@@ -12,6 +12,13 @@ export interface PyraZoneRes {
   tierkey_sales: number;
   expirations: string[];
   total_values: string[];
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  }
 }
 
 export interface PyraZoneTierkeyHolderRes {
@@ -23,6 +30,13 @@ export interface PyraZoneTierkeyHolderRes {
   key_id: string;
   expired_at: string;
   is_burned: boolean;
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  }
 }
 
 export interface PyraZoneTierkeyActivityRes {
@@ -42,6 +56,13 @@ export interface PyraZoneTierkeyActivityRes {
   liquidate_at?: string;
   liquidate_price?: string;
   liquidator?: string;
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  }
 }
 
 export interface PyraMarketRes {
@@ -58,6 +79,13 @@ export interface PyraMarketRes {
   total_supply: string;
   total_value: string;
   total_volume: string;
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  }
 }
 
 export interface PyraMarketShareHolderRes {
@@ -67,6 +95,13 @@ export interface PyraMarketShareHolderRes {
   shareholder: string;
   total_amount: string;
   staked_amount: string;
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  }
 }
 
 export interface PyraMarketShareActivityRes {
@@ -82,4 +117,11 @@ export interface PyraMarketShareActivityRes {
   sell_at?: string;
   sell_amount?: string;
   sell_price?: string;
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  }
 }
