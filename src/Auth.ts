@@ -42,12 +42,18 @@ export class Auth {
     return res;
   }
 
-  static async info({ did, twitterId }: { did?: string; twitterId?: string }) {
+  static async info({
+    address,
+    twitterId
+  }: {
+    address?: string;
+    twitterId?: string;
+  }) {
     const res = await http.request({
       url: `twitter/info`,
       method: "get",
       params: {
-        did,
+        address,
         twitter_id: twitterId
       }
     });

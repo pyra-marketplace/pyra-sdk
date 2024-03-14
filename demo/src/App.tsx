@@ -95,7 +95,7 @@ function App() {
 
   const info = async () => {
     const res = await Auth.info({
-      did: pkh,
+      address
       // twitterId: "1751701503788695552"
     });
     console.log(res);
