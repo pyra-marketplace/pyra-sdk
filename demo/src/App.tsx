@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Connector,
   SYSTEM_CALL,
   MeteorWalletProvider
 } from "@meteor-web3/connector";
 import { BigNumberish, ethers } from "ethers";
-import { PyraZone, PyraMarket, RevenuePool } from "../../src";
+import { PyraZone, PyraMarket, RevenuePool, Auth } from "../../src";
 import "./App.scss";
 import { ChainId } from "../../src/types";
 
@@ -36,6 +36,20 @@ function App() {
   const [assetId, setAssetId] = React.useState<string>("");
   const [tier, setTier] = React.useState(0);
   const [keyId, setKeyId] = React.useState<BigNumberish>(0);
+  const [code, setCode] = React.useState<string | null>();
+  const [state, setState] = React.useState<string | null>();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    setCode(searchParams.get("code"));
+    setState(searchParams.get("state"));
+    if (code && state) {
+      const uri = new URL(window.location.href);
+      uri.searchParams.delete("code");
+      uri.searchParams.delete("state");
+      window.history.pushState({}, "", uri);
+    }
+  }, []);
 
   const createCapability = async () => {
     const connectWalletRes = await connector.connectWallet({
@@ -53,6 +67,40 @@ function App() {
     console.log(createCapabilityRes.pkh);
     return createCapabilityRes.pkh;
   };
+
+  /*** Auth */
+  const login = async () => {
+    const res: any = await Auth.login({
+      connector,
+      redirectUrl: location.href
+    });
+    console.log(res);
+    window.location.href = res.url;
+  };
+
+  const bind = async () => {
+    console.log({ code });
+    if (!code) {
+      throw new Error("no code");
+    }
+    if (!state) {
+      throw new Error("no state");
+    }
+    const res = await Auth.bind({
+      code,
+      state
+    });
+    console.log(res);
+  };
+
+  const info = async () => {
+    const res = await Auth.info({
+      did: pkh,
+      // twitterId: "1751701503788695552"
+    });
+    console.log(res);
+  };
+  /*** Auth */
 
   /*** PyraZone wirte operation */
   const createPyraZone = async () => {
@@ -558,6 +606,10 @@ function App() {
       <button onClick={() => createCapability()}>createCapability</button>
       <div className='blackText'>{pkh}</div>
       <hr />
+      <button onClick={() => login()}>login</button>
+      <button onClick={() => bind()}>bind</button>
+      <button onClick={() => info()}>info</button>
+      <br />
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
       <button onClick={() => createTierFile()}>createTierFile</button>

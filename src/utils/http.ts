@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const http = axios.create({
-  baseURL: "https://pyra.dataverse.art/api/v1/",
+  baseURL: "https://api.pyra.wtf/api/v1/",
   headers: {
     accept: "application/json"
   }
@@ -21,7 +21,7 @@ http.interceptors.response.use(
     if (response.data.error) {
       return Promise.reject(response.data.error);
     } else {
-      return response.data.message;
+      return response.data.message ?? response.data;
     }
   },
   (error) => {
