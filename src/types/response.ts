@@ -28,6 +28,7 @@ export interface PyraZoneRes {
     profile_image_url: string;
     username: string;
   }
+  share_total_volume?: string;
 }
 
 export interface PyraZoneTierkeyHolderRes {
