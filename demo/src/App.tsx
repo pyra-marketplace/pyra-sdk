@@ -70,7 +70,7 @@ function App() {
 
   /*** Auth */
   const login = async () => {
-    const res: any = await Auth.login({
+    const res = await Auth.login({
       connector,
       redirectUrl: location.href
     });

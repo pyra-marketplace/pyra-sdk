@@ -21,7 +21,7 @@ export class Auth {
       }
     });
     const { siweMessage, jws } = sigObj;
-    const res = await http.request({
+    const res: any = await http.request({
       url: `twitter/login?redirect_url=${redirectUrl}`,
       method: "post",
       headers: {
@@ -31,15 +31,24 @@ export class Auth {
         "x-pyra-siwe": btoa(JSON.stringify(siweMessage))
       }
     });
-    return res;
+    return res as {
+      url: string;
+      error?: string;
+    };
   }
 
   static async bind({ state, code }: { state?: string; code?: string }) {
-    const res = await http.request({
+    const res: any = await http.request({
       url: `twitter/bind?state=${state}&code=${code}`,
       method: "post"
     });
-    return res;
+    return res as {
+      description: string;
+      id: string;
+      name: string;
+      profile_image_url: string;
+      username: string;
+    };
   }
 
   static async info({
@@ -49,7 +58,7 @@ export class Auth {
     address?: string;
     twitterId?: string;
   }) {
-    const res = await http.request({
+    const res: any = await http.request({
       url: `twitter/info`,
       method: "get",
       params: {
@@ -57,6 +66,12 @@ export class Auth {
         twitter_id: twitterId
       }
     });
-    return res;
+    return res as {
+      description: string;
+      id: string;
+      name: string;
+      profile_image_url: string;
+      username: string;
+    };
   }
 }
