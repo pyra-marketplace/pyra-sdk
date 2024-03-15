@@ -12,6 +12,8 @@ export interface PyraZoneRes {
   tierkey_sales: number;
   expirations: string[];
   total_values: string[];
+  total_supplies: string[];
+  tierkey_price: string;
   user_info?: {
     description: string;
     id: string;
