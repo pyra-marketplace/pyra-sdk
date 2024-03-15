@@ -1,3 +1,10 @@
+export interface WatchlistRes {
+  publisher: string;
+  watcher: string;
+  watch_at: string;
+  follow: boolean;
+}
+
 export interface PyraZoneRes {
   chain_id: number;
   block_number: number;

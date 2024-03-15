@@ -349,6 +349,45 @@ function App() {
   /*** PyraZone read operation */
 
   /*** PyraMarket wirte operation */
+  const watch = async () => {
+    if (!address) {
+      throw new Error("need conenct wallet");
+    }
+    const res = await PyraMarket.watch({
+      chainId,
+      watcher: address,
+      publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e"
+    });
+    console.log("watch success:", res);
+  };
+
+  const unwatch = async () => {
+    if (!address) {
+      throw new Error("need conenct wallet");
+    }
+    const res = await PyraMarket.unwatch({
+      chainId,
+      watcher: address,
+      publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e"
+    });
+    console.log("unwatch success:", res);
+  };
+
+  const loadWatchlist = async () => {
+    if (!address) {
+      throw new Error("need conenct wallet");
+    }
+    const res = await PyraMarket.loadWatchlist({
+      chainId,
+      watcher: address,
+      page: 1,
+      pageSize: 10,
+      orderBy: "watch_at",
+      orderType: "desc"
+    });
+    console.log("watchlist:", res)
+  };
+
   const createShare = async () => {
     const pyraMarket = new PyraMarket({
       chainId,
@@ -648,6 +687,9 @@ function App() {
       <button onClick={() => loadPyraMarketShareActivities()}>
         loadPyraMarketShareActivities
       </button>
+      <button onClick={watch}>watch</button>
+      <button onClick={unwatch}>unwatch</button>
+      <button onClick={loadWatchlist}>loadWatchlist</button>
       <button onClick={() => createShare()}>createShare</button>
       <button onClick={() => buyShares()}>buyShares</button>
       <button onClick={() => sellShares()}>sellShares</button>
