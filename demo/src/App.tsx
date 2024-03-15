@@ -356,7 +356,8 @@ function App() {
     const res = await PyraMarket.watch({
       chainId,
       watcher: address,
-      publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e"
+      publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e",
+      connector
     });
     console.log("watch success:", res);
   };
@@ -368,7 +369,8 @@ function App() {
     const res = await PyraMarket.unwatch({
       chainId,
       watcher: address,
-      publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e"
+      publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e",
+      connector
     });
     console.log("unwatch success:", res);
   };
@@ -385,7 +387,7 @@ function App() {
       orderBy: "watch_at",
       orderType: "desc"
     });
-    console.log("watchlist:", res)
+    console.log("watchlist:", res);
   };
 
   const createShare = async () => {

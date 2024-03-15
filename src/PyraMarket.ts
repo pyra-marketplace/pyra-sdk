@@ -1,5 +1,5 @@
 import { BigNumberish, Signer, ethers } from "ethers";
-import { Connector } from "@meteor-web3/connector";
+import { Connector, SYSTEM_CALL } from "@meteor-web3/connector";
 
 import { DataAssetBase } from "@pyra-marketplace/assets-sdk/data-asset";
 import {
@@ -251,17 +251,39 @@ export class PyraMarket extends DataAssetBase {
     chainId,
     watcher,
     publisher,
+    connector
   }: {
     chainId?: number;
     watcher: string;
     publisher: string;
+    connector: Connector;
   }) {
+    const codeRes: any = await http.request({
+      url: "code",
+      method: "post"
+    });
+    const sigObj = await connector.runOS({
+      method: SYSTEM_CALL.signWithSessionKey,
+      params: {
+        code: codeRes.code,
+        requestPath: `/api/v1/${
+          chainId || "*"
+        }/pyra-marketplace/watch-list/watch`
+      }
+    });
+    const { siweMessage, jws } = sigObj;
     return http.request({
       url: `${chainId || "*"}/pyra-marketplace/watch-list/watch`,
       method: "post",
       params: {
         watcher,
-        publisher,
+        publisher
+      },
+      headers: {
+        Authorization: `Bearer ${(jws as any).signatures[0].protected}.${
+          (jws as any).payload
+        }.${(jws as any).signatures[0].signature}`,
+        "x-pyra-siwe": btoa(JSON.stringify(siweMessage))
       }
     });
   }
@@ -270,17 +292,39 @@ export class PyraMarket extends DataAssetBase {
     chainId,
     watcher,
     publisher,
+    connector
   }: {
     chainId?: number;
     watcher: string;
     publisher: string;
+    connector: Connector;
   }) {
+    const codeRes: any = await http.request({
+      url: "code",
+      method: "post"
+    });
+    const sigObj = await connector.runOS({
+      method: SYSTEM_CALL.signWithSessionKey,
+      params: {
+        code: codeRes.code,
+        requestPath: `/api/v1/${
+          chainId || "*"
+        }/pyra-marketplace/watch-list/unwatch`
+      }
+    });
+    const { siweMessage, jws } = sigObj;
     return http.request({
       url: `${chainId || "*"}/pyra-marketplace/watch-list/unwatch`,
       method: "post",
       params: {
         watcher,
-        publisher,
+        publisher
+      },
+      headers: {
+        Authorization: `Bearer ${(jws as any).signatures[0].protected}.${
+          (jws as any).payload
+        }.${(jws as any).signatures[0].signature}`,
+        "x-pyra-siwe": btoa(JSON.stringify(siweMessage))
       }
     });
   }
@@ -305,17 +349,19 @@ export class PyraMarket extends DataAssetBase {
       | "total_supply";
     orderType?: "asc" | "desc";
   }) {
-    const pyraMarkets: PyraMarketRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/pyra-market`,
-      method: "get",
-      params: {
-        publishers: publishers.join(","),
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType
-      }
-    });
+    const pyraMarkets: PyraMarketRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/pyra-market`,
+        method: "get",
+        params: {
+          publishers: publishers.join(","),
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
     return pyraMarkets;
   }
 
@@ -336,18 +382,20 @@ export class PyraMarket extends DataAssetBase {
     orderBy?: "total_amount";
     orderType?: "asc" | "desc";
   }) {
-    const shareHolders: PyraMarketShareHolderRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/holder`,
-      method: "get",
-      params: {
-        share,
-        publisher,
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType
-      }
-    });
+    const shareHolders: PyraMarketShareHolderRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/holder`,
+        method: "get",
+        params: {
+          share,
+          publisher,
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
     return shareHolders;
   }
 
@@ -368,18 +416,20 @@ export class PyraMarket extends DataAssetBase {
     orderBy?: "block_number";
     orderType?: "asc" | "desc";
   }) {
-    const shareActivities: PyraMarketShareActivityRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/activity`,
-      method: "get",
-      params: {
-        share,
-        publisher,
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType
-      }
-    });
+    const shareActivities: PyraMarketShareActivityRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/activity`,
+        method: "get",
+        params: {
+          share,
+          publisher,
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
     return shareActivities;
   }
 
@@ -400,18 +450,20 @@ export class PyraMarket extends DataAssetBase {
     orderBy?: "watch_at";
     orderType?: "asc" | "desc";
   }) {
-    const watchlist: WatchlistRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/watch-list`,
-      method: "get",
-      params: {
-        watcher,
-        publisher,
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType
-      }
-    });
+    const watchlist: WatchlistRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/watch-list`,
+        method: "get",
+        params: {
+          watcher,
+          publisher,
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
     return watchlist;
   }
 }

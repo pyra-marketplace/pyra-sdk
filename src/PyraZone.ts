@@ -768,19 +768,21 @@ export class PyraZone extends DataAssetBase {
     orderType?: "asc" | "desc";
     recentTime?: number;
   }) {
-    const pyraZones: PyraZoneRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
-      method: "get",
-      params: {
-        asset_ids: assetIds?.join(","),
-        publishers: publishers?.join(","),
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType,
-        recent_time: recentTime
-      }
-    });
+    const pyraZones: PyraZoneRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
+        method: "get",
+        params: {
+          asset_ids: assetIds?.join(","),
+          publishers: publishers?.join(","),
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType,
+          recent_time: recentTime
+        }
+      })
+    ).data;
     return pyraZones;
   }
 
@@ -803,19 +805,21 @@ export class PyraZone extends DataAssetBase {
     orderBy?: "key_id";
     orderType?: "asc" | "desc";
   }) {
-    const tierkeyHolders: PyraZoneTierkeyHolderRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/holder`,
-      method: "get",
-      params: {
-        asset_id: assetId,
-        tier,
-        tierkey,
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType
-      }
-    });
+    const tierkeyHolders: PyraZoneTierkeyHolderRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/holder`,
+        method: "get",
+        params: {
+          asset_id: assetId,
+          tier,
+          tierkey,
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
     return tierkeyHolders;
   }
 
@@ -838,19 +842,21 @@ export class PyraZone extends DataAssetBase {
     orderBy?: "block_number";
     orderType?: "asc" | "desc";
   }) {
-    const tierkeyActivities: PyraZoneTierkeyActivityRes[] = await http.request({
-      url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/activity`,
-      method: "get",
-      params: {
-        asset_id: assetId,
-        tier,
-        tierkey,
-        page,
-        page_size: pageSize,
-        order_by: orderBy,
-        order_type: orderType
-      }
-    });
+    const tierkeyActivities: PyraZoneTierkeyActivityRes[] = (
+      await http.request({
+        url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/activity`,
+        method: "get",
+        params: {
+          asset_id: assetId,
+          tier,
+          tierkey,
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
     return tierkeyActivities;
   }
 

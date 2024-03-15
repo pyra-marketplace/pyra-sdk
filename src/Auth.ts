@@ -58,20 +58,26 @@ export class Auth {
     address?: string;
     twitterId?: string;
   }) {
-    const res: any = await http.request({
-      url: `twitter/info`,
-      method: "get",
-      params: {
-        address,
-        twitter_id: twitterId
-      }
-    });
+    const res: any = (
+      await http.request({
+        url: `twitter/info`,
+        method: "get",
+        params: {
+          address,
+          twitter_id: twitterId
+        }
+      })
+    ).data;
     return res as {
-      description: string;
-      id: string;
-      name: string;
-      profile_image_url: string;
-      username: string;
+      address: string;
+      did: string;
+      twitter: {
+        description: string;
+        id: string;
+        name: string;
+        profile_image_url: string;
+        username: string;
+      };
     };
   }
 }
