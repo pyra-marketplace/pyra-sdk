@@ -29,6 +29,7 @@ export interface PyraZoneRes {
     username: string;
   }
   share_total_volume?: string;
+  files_count: number;
 }
 
 export interface PyraZoneTierkeyHolderRes {
