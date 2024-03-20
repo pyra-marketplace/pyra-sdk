@@ -2,14 +2,14 @@ import React, { useEffect } from "react";
 import {
   Connector,
   SYSTEM_CALL,
-  MeteorWalletProvider
+  MeteorWebProvider
 } from "@meteor-web3/connector";
 import { BigNumberish, ethers } from "ethers";
 import { PyraZone, PyraMarket, RevenuePool, Auth } from "../../src";
 import "./App.scss";
 import { ChainId } from "../../src/types";
 
-const connector = new Connector(new MeteorWalletProvider());
+const connector = new Connector(new MeteorWebProvider());
 
 const appId = "e104c799-3cb6-4f4d-ba8a-16649cd9701a";
 

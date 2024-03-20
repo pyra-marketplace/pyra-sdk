@@ -27,7 +27,7 @@ export interface PyraZoneRes {
     name: string;
     profile_image_url: string;
     username: string;
-  }
+  };
   share_total_volume?: string;
   files_count: number;
 }
@@ -47,7 +47,7 @@ export interface PyraZoneTierkeyHolderRes {
     name: string;
     profile_image_url: string;
     username: string;
-  }
+  };
 }
 
 export interface PyraZoneTierkeyActivityRes {
@@ -73,7 +73,7 @@ export interface PyraZoneTierkeyActivityRes {
     name: string;
     profile_image_url: string;
     username: string;
-  }
+  };
 }
 
 export interface PyraMarketRes {
@@ -96,7 +96,7 @@ export interface PyraMarketRes {
     name: string;
     profile_image_url: string;
     username: string;
-  }
+  };
 }
 
 export interface PyraMarketShareHolderRes {
@@ -112,7 +112,7 @@ export interface PyraMarketShareHolderRes {
     name: string;
     profile_image_url: string;
     username: string;
-  }
+  };
 }
 
 export interface PyraMarketShareActivityRes {
@@ -134,5 +134,5 @@ export interface PyraMarketShareActivityRes {
     name: string;
     profile_image_url: string;
     username: string;
-  }
+  };
 }

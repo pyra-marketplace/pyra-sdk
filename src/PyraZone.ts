@@ -24,6 +24,7 @@ import { DEPLOYED_ADDRESSES } from "./configs";
 import { TradeType } from "./types";
 import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
+import { switchNetwork } from "./utils/network";
 
 export class PyraZone extends DataAssetBase {
   pyraZone;
@@ -62,10 +63,7 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const expiration = 3600 * 24 * 7; // 1 week
     const data: string = abiCoder.encode(["uint256"], [expiration]);
@@ -93,10 +91,7 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const tx = await this.pyraZone.createTierkey(this.assetId, expiration);
     const receipt = await tx.wait();
@@ -125,10 +120,7 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const totalPrice = await this.pyraZone.getTierkeyPriceAfterFee(
       this.assetId,
@@ -169,10 +161,7 @@ export class PyraZone extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId, {
       gasPrice: 2000,

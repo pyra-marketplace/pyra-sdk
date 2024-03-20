@@ -12,6 +12,7 @@ import { PyraMarket__factory } from "./abi/typechain";
 import { DEPLOYED_ADDRESSES } from "./configs";
 import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
+import { switchNetwork } from "./utils/network";
 
 export class PyraMarket extends DataAssetBase {
   pyraMarket;
@@ -59,10 +60,7 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const tx = await this.pyraMarket.createShare(
       shareName,
@@ -190,10 +188,7 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const tx = await this.pyraMarket.sellShares(creator, amount);
 

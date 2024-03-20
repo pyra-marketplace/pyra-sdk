@@ -4,6 +4,7 @@ import { Connector } from "@meteor-web3/connector";
 import { ChainId } from "./types";
 import { Share__factory, RevenuePool__factory } from "./abi/typechain";
 import { retryRPC } from "./utils/retryRPC";
+import { switchNetwork } from "./utils/network";
 
 export class RevenuePool {
   share;
@@ -52,10 +53,7 @@ export class RevenuePool {
       throw new Error("Share contract address cannot be empty");
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     let tx = await this.share.approve(this.revenuePoolAddress, sharesAmount);
     await tx.wait();
@@ -71,10 +69,7 @@ export class RevenuePool {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const tx = await this.revenuePool.unstake(sharesAmount);
     await tx.wait();
@@ -87,10 +82,7 @@ export class RevenuePool {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const tx = await this.revenuePool.claim(this.connector.address);
     const receipt = await tx.wait();
@@ -136,10 +128,7 @@ export class RevenuePool {
       );
     }
 
-    await this.connector.getProvider().request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-    });
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
     const shareholder = await this.signer!.getAddress();
 
