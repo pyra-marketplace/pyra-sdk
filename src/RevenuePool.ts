@@ -97,7 +97,7 @@ export class RevenuePool {
     return revenue;
   }
 
-  public async getStakeStatus() {
+  public async loadStakeStatus() {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
@@ -121,7 +121,7 @@ export class RevenuePool {
     return stakeStatus;
   }
 
-  public async getClaimableRevenue() {
+  public async loadClaimableRevenue() {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
@@ -145,7 +145,7 @@ export class RevenuePool {
     return revenue;
   }
 
-  public async getRevenuePoolBalance() {
+  public async loadRevenuePoolBalance() {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"

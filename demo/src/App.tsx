@@ -344,13 +344,13 @@ function App() {
   /*** RevenuePool write operation */
 
   /*** RevenuePool read operation */
-  const getRevenuePoolBalance = async () => {
+  const loadRevenuePoolBalance = async () => {
     const revenuePool = new RevenuePool({
       chainId,
       revenuePoolAddress,
       connector
     });
-    const revenuePoolBalance = await revenuePool.getRevenuePoolBalance();
+    const revenuePoolBalance = await revenuePool.loadRevenuePoolBalance();
     console.log("(RAW)Revenue pool balance:", revenuePoolBalance.toString());
     console.log(
       "(Ether)Revenue pool balance:",
@@ -358,13 +358,13 @@ function App() {
     );
   };
 
-  const getClaimableRevenue = async () => {
+  const loadClaimableRevenue = async () => {
     const revenuePool = new RevenuePool({
       chainId,
       revenuePoolAddress,
       connector
     });
-    const revenue = await revenuePool.getClaimableRevenue();
+    const revenue = await revenuePool.loadClaimableRevenue();
     console.log("(RAW)Claimable revenue:", revenue.toString());
     console.log("(Ether)Claimable revenue:", ethers.utils.formatEther(revenue));
   };
@@ -663,10 +663,10 @@ function App() {
       <button onClick={() => stake()}>stake</button>
       <button onClick={() => unstake()}>unstake</button>
       <button onClick={() => claim()}>claim</button>
-      <button onClick={() => getRevenuePoolBalance()}>
-        getRevenuePoolBalance
+      <button onClick={() => loadRevenuePoolBalance()}>
+        loadRevenuePoolBalance
       </button>
-      <button onClick={() => getClaimableRevenue()}>getClaimableRevenue</button>
+      <button onClick={() => loadClaimableRevenue()}>loadClaimableRevenue</button>
       <br />
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
