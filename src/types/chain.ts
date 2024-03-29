@@ -1,6 +1,6 @@
 import { BigNumberish } from "ethers";
-import {RevenuePool} from "../abi/typechain/RevenuePool";
-import {IPyraMarket} from "../abi/typechain/PyraMarket";
+import { RevenuePool } from "../abi/typechain/RevenuePool";
+import { IPyraMarket } from "../abi/typechain/PyraMarket";
 
 export enum ChainId {
   Polygon = 137,

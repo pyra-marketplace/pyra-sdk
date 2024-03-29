@@ -4,7 +4,7 @@ import {
   SYSTEM_CALL,
   MeteorWebProvider
 } from "@meteor-web3/connector";
-import { BigNumber, BigNumberish, ethers } from "ethers";
+import { BigNumberish, ethers } from "ethers";
 import { PyraZone, PyraMarket, RevenuePool, Auth } from "../../src";
 import "./App.scss";
 import { ChainId } from "../../src/types";
@@ -258,7 +258,7 @@ function App() {
       connector
     });
     const res = await pyraMarket.loadShareInfo(address);
-    shareAddress = res.shareAddress;
+    shareAddress = res.share;
     revenuePoolAddress = res.revenuePool;
     console.log(res);
   };
