@@ -1,5 +1,6 @@
 import { BigNumberish } from "ethers";
 import {RevenuePool} from "../abi/typechain/RevenuePool";
+import {IPyraMarket} from "../abi/typechain/PyraMarket";
 
 export enum ChainId {
   Polygon = 137,
@@ -18,5 +19,7 @@ export enum TradeType {
   Buy,
   Sell
 }
+
+export type ShareInfo = IPyraMarket.ShareInfoStruct;
 
 export type StakeStatus = RevenuePool.StakeStatusStruct;

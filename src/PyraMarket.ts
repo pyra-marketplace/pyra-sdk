@@ -5,6 +5,7 @@ import {
   PyraMarketRes,
   PyraMarketShareActivityRes,
   PyraMarketShareHolderRes,
+  ShareInfo,
   WatchlistRes
 } from "./types";
 import { PyraMarket__factory } from "./abi/typechain";
@@ -226,7 +227,7 @@ export class PyraMarket {
       );
     }
 
-    const shareInfo = await retryRPC({
+    const shareInfo: ShareInfo = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
       contractAddress: this.pyraMarketAddress,
@@ -234,12 +235,7 @@ export class PyraMarket {
       params: [creator]
     });
 
-    return {
-      revenuePool: shareInfo.revenuePool,
-      shareAddress: shareInfo.share,
-      feePoint: shareInfo.feePoint,
-      totalValue: shareInfo.totalValue
-    };
+    return shareInfo;
   }
 
   public async loadTotalSupply(shareAddress: string) {
