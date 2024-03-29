@@ -1,4 +1,4 @@
-import { BigNumberish } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import {
   Connector,
   SYSTEM_CALL,
@@ -65,8 +65,7 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const expiration = 3600 * 24 * 7; // 1 week
-    const data: string = abiCoder.encode(["uint256"], [expiration]);
+    const data: string = "0x";
     const actions: string[] = [];
     const actionInitDatas: string[] = [];
 
@@ -78,7 +77,7 @@ export class PyraZone extends DataAssetBase {
     return await this.createAssetHandler(publishParams);
   }
 
-  public async createTierkey(expiration: BigNumberish) {
+  public async createTierkey() {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -93,7 +92,7 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.pyraZone.createTierkey(this.assetId, expiration);
+    const tx = await this.pyraZone.createTierkey(this.assetId);
     const receipt = await tx.wait();
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "TierkeyCreated"
@@ -163,11 +162,36 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId, {
-      gasPrice: 2000,
-      gasLimit: 200000
-    });
+    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId);
     await tx.wait();
+  }
+
+  public async skim() {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
+
+    const tx = await this.pyraZone.skim(this.assetId);
+    const receipt = await tx.wait();
+
+    const targetEvents = receipt.events?.filter(
+      (e: any) => e.event === "Skimed"
+    );
+    if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
+      throw new Error("Filter Skimed event failed");
+    }
+    const skimAmount: BigNumber = targetEvents[0].args[4];
+    return skimAmount;
   }
 
   public async loadZoneAsset() {
@@ -192,7 +216,7 @@ export class PyraZone extends DataAssetBase {
     const zoneAsset = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getZoneAsset",
       params: [this.assetId]
     });
@@ -222,7 +246,7 @@ export class PyraZone extends DataAssetBase {
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getTierkeyPrice",
       params: [this.assetId, tier, TradeType.Buy]
     });
@@ -252,7 +276,7 @@ export class PyraZone extends DataAssetBase {
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getTierkeyPrice",
       params: [this.assetId, tier, TradeType.Sell]
     });
@@ -288,7 +312,7 @@ export class PyraZone extends DataAssetBase {
     const res = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "isAccessible",
       params: [this.assetId, account, tier]
     });

@@ -93,7 +93,7 @@ export class RevenuePool {
     if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
       throw new Error("Filter RevenueClaimed event failed");
     }
-    const revenue: BigNumber = targetEvents[0].args[4];
+    const revenue: BigNumber = targetEvents[0].args[3];
     return revenue;
   }
 
@@ -113,7 +113,7 @@ export class RevenuePool {
     const stakeStatus: StakeStatus = await retryRPC({
       chainId: this.chainId,
       contractFactory: "revenuePool__factory",
-      assetContract: this.revenuePoolAddress,
+      contractAddress: this.revenuePoolAddress,
       method: "getStakeStatus",
       params: [this.connector.address]
     });
@@ -137,7 +137,7 @@ export class RevenuePool {
     const revenue: BigNumber = await retryRPC({
       chainId: this.chainId,
       contractFactory: "revenuePool__factory",
-      assetContract: this.revenuePoolAddress,
+      contractAddress: this.revenuePoolAddress,
       method: "getClaimableRevenue",
       params: [this.connector.address]
     });

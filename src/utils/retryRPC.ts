@@ -17,13 +17,13 @@ export const ContractFactory = {
 export async function retryRPC({
   chainId,
   contractFactory,
-  assetContract,
+  contractAddress,
   method,
   params
 }: {
   chainId: number;
   contractFactory?: keyof typeof ContractFactory;
-  assetContract?: string;
+  contractAddress?: string;
   method: any;
   params: any[];
 }) {
@@ -32,9 +32,9 @@ export async function retryRPC({
     try {
       const provider = new ethers.providers.JsonRpcProvider(rpcList[i]);
 
-      if (contractFactory && assetContract) {
+      if (contractFactory && contractAddress) {
         const instance = ContractFactory[contractFactory].connect(
-          assetContract,
+          contractAddress,
           provider
         );
         const res = await (instance as any)[method](...params);

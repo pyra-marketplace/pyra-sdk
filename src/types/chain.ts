@@ -12,8 +12,6 @@ export interface ZoneAsset {
   publicationId: BigNumberish;
   actions: string[];
   tierkeys: string[];
-  expirations: BigNumberish[];
-  totalValues: BigNumberish[];
 }
 
 export enum TradeType {

@@ -47,12 +47,10 @@ export class PyraMarket extends DataAssetBase {
 
   public async createShare({
     shareName,
-    shareSymbol,
-    feePoint
+    shareSymbol
   }: {
     shareName: string;
     shareSymbol: string;
-    feePoint: BigNumberish;
   }) {
     if (!this.chainId) {
       throw new Error(
@@ -64,8 +62,7 @@ export class PyraMarket extends DataAssetBase {
 
     const tx = await this.pyraMarket.createShare(
       shareName,
-      shareSymbol,
-      feePoint
+      shareSymbol
     );
     const receipt = await tx.wait();
     const targetEvents = receipt.events?.filter(
@@ -101,7 +98,7 @@ export class PyraMarket extends DataAssetBase {
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getBuyPrice",
       params: [creator, amount]
     });
@@ -131,7 +128,7 @@ export class PyraMarket extends DataAssetBase {
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getSellPrice",
       params: [creator, amount]
     });
@@ -211,7 +208,7 @@ export class PyraMarket extends DataAssetBase {
     const shareInfo = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getShareInfo",
       params: [creator]
     });
@@ -234,7 +231,7 @@ export class PyraMarket extends DataAssetBase {
     const totalSupply = await retryRPC({
       chainId: this.chainId,
       contractFactory: "share__factory",
-      assetContract: shareAddress,
+      contractAddress: shareAddress,
       method: "totalSupply",
       params: []
     });
