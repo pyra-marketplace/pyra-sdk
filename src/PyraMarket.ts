@@ -1,7 +1,6 @@
 import { BigNumberish, Signer, ethers } from "ethers";
 import { Connector, SYSTEM_CALL } from "@meteor-web3/connector";
 
-import { DataAssetBase } from "@pyra-marketplace/assets-sdk/data-asset";
 import {
   PyraMarketRes,
   PyraMarketShareActivityRes,
@@ -14,8 +13,9 @@ import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
 import { switchNetwork } from "./utils/network";
 
-export class PyraMarket extends DataAssetBase {
+export class PyraMarket {
   pyraMarket;
+  pyraMarketAddress: string;
   chainId?: number;
   connector: Connector;
   signer?: Signer;
@@ -27,20 +27,15 @@ export class PyraMarket extends DataAssetBase {
     chainId?: number;
     connector: Connector;
   }) {
-    super({
-      chainId,
-      connector
-    });
+    this.pyraMarketAddress = DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
+    ?.PyraMarket;
     const provider = connector.getProvider();
     const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
     this.signer = ethersProvider.getSigner();
     this.chainId = chainId;
     this.connector = connector;
-    this.assetContract =
-      DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
-        ?.PyraMarket;
     this.pyraMarket = PyraMarket__factory.connect(
-      this.assetContract,
+      this.pyraMarketAddress,
       this.signer
     );
   }
@@ -89,16 +84,10 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      contractAddress: this.assetContract,
+      contractAddress: this.pyraMarketAddress,
       method: "getBuyPrice",
       params: [creator, amount]
     });
@@ -119,16 +108,10 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      contractAddress: this.assetContract,
+      contractAddress: this.pyraMarketAddress,
       method: "getSellPrice",
       params: [creator, amount]
     });
@@ -149,9 +132,33 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const totalPrice = await this.pyraMarket.getBuyPriceAfterFee(
+      creator,
+      amount
+    );
+
+    const tx = await this.pyraMarket.buyShares(creator, amount, {
+      value: totalPrice
+    });
+
+    await tx.wait();
+  }
+
+  public async buyAndStakeShares({
+    creator,
+    amount
+  }: {
+    creator: string;
+    amount: BigNumberish;
+  }) {
+    if (!this.chainId) {
       throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
+        "ChainId cannot be empty, please pass in through constructor"
       );
     }
 
@@ -165,7 +172,7 @@ export class PyraMarket extends DataAssetBase {
       amount
     );
 
-    const tx = await this.pyraMarket.buyShares(creator, amount, {
+    const tx = await this.pyraMarket.buyAndStakeShares(creator, amount, {
       value: totalPrice
     });
 
@@ -192,6 +199,26 @@ export class PyraMarket extends DataAssetBase {
     await tx.wait();
   }
 
+  public async unstakeAndSellShares({
+    creator,
+    amount
+  }: {
+    creator: string;
+    amount: BigNumberish;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
+
+    const tx = await this.pyraMarket.unstakeAndSellShares(creator, amount);
+
+    await tx.wait();
+  }
+
   public async loadShareInfo(creator: string) {
     if (!this.chainId) {
       throw new Error(
@@ -199,16 +226,10 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-
     const shareInfo = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      contractAddress: this.assetContract,
+      contractAddress: this.pyraMarketAddress,
       method: "getShareInfo",
       params: [creator]
     });
