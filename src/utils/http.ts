@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const http = axios.create({
-  baseURL: "http://127.0.0.1:8576/api/v1/",
+  baseURL: "https://api.pyra.wtf/api/v1/",
   headers: {
     accept: "application/json"
   }
