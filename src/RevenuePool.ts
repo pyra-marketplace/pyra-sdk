@@ -1,7 +1,7 @@
-import { BigNumberish, Signer, ethers } from "ethers";
+import { BigNumber, BigNumberish, Signer, ethers } from "ethers";
 import { Connector } from "@meteor-web3/connector";
 
-import { ChainId } from "./types";
+import { ChainId, StakeStatus } from "./types";
 import { Share__factory, RevenuePool__factory } from "./abi/typechain";
 import { retryRPC } from "./utils/retryRPC";
 import { switchNetwork } from "./utils/network";
@@ -62,7 +62,7 @@ export class RevenuePool {
     await tx.wait();
   }
 
-  public async unStake(sharesAmount: BigNumberish) {
+  public async unstake(sharesAmount: BigNumberish) {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
@@ -84,20 +84,20 @@ export class RevenuePool {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.revenuePool.claim(this.connector.address);
+    const tx = await this.revenuePool.claim();
     const receipt = await tx.wait();
 
     const targetEvents = receipt.events?.filter(
-      (e: any) => e.event === "Claimed"
+      (e: any) => e.event === "RevenueClaimed"
     );
     if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
-      throw new Error("Filter Claimed event failed");
+      throw new Error("Filter RevenueClaimed event failed");
     }
-    const rewards = targetEvents[0].args[1];
-    return rewards;
+    const revenue: BigNumber = targetEvents[0].args[4];
+    return revenue;
   }
 
-  public async getStakingRewards() {
+  public async getStakeStatus() {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
@@ -110,38 +110,38 @@ export class RevenuePool {
       );
     }
 
-    const rewards = await retryRPC({
+    const stakeStatus: StakeStatus = await retryRPC({
       chainId: this.chainId,
       contractFactory: "revenuePool__factory",
       assetContract: this.revenuePoolAddress,
-      method: "getStakingRewards",
+      method: "getStakeStatus",
       params: [this.connector.address]
     });
 
-    return rewards;
+    return stakeStatus;
   }
 
-  public async distribute(rewards: BigNumberish) {
+  public async getClaimableRevenue() {
     if (!this.chainId) {
       throw new Error(
         "ChainId cannot be empty, please pass in through constructor"
       );
     }
 
-    await switchNetwork({ connector: this.connector, chainId: this.chainId });
-
-    const shareholder = await this.signer!.getAddress();
-
-    const tx = await this.revenuePool.distribute(shareholder, rewards);
-    const receipt = await tx.wait();
-
-    const targetEvents = receipt.events?.filter(
-      (e: any) => e.event === "Distributed"
-    );
-    if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
-      throw new Error("Filter Distributed event failed");
+    if (!this.revenuePoolAddress) {
+      throw new Error(
+        "RevenuePoolAddress cannot be empty, please pass in through constructor"
+      );
     }
-    const revenue = targetEvents[0].args[1];
+
+    const revenue: BigNumber = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "revenuePool__factory",
+      assetContract: this.revenuePoolAddress,
+      method: "getClaimableRevenue",
+      params: [this.connector.address]
+    });
+
     return revenue;
   }
 
@@ -152,7 +152,7 @@ export class RevenuePool {
       );
     }
 
-    const balance = await retryRPC({
+    const balance: BigNumber = await retryRPC({
       chainId: this.chainId,
       method: "getBalance",
       params: [this.revenuePoolAddress]
@@ -160,47 +160,4 @@ export class RevenuePool {
 
     return balance;
   }
-
-  // public async getTotalSupply() {
-  //   if (!this.chainId) {
-  //     throw new Error(
-  //       "ChainId cannot be empty, please pass in through constructor"
-  //     );
-  //   }
-
-  //   await this.connector.getProvider().request({
-  //     method: "wallet_switchEthereumChain",
-  //     params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-  //   });
-
-  //   const totalSupply = await this.revenuePool.totalSupply();
-
-  //   return totalSupply;
-  // }
-
-  // public async calculateRevenue() {
-  //   if (!this.chainId) {
-  //     throw new Error(
-  //       "ChainId cannot be empty, please pass in through constructor"
-  //     );
-  //   }
-
-  //   if (!this.signer) {
-  //     throw new Error("Signer not found, please collect wallet");
-  //   }
-
-  //   await this.connector.getProvider().request({
-  //     method: "wallet_switchEthereumChain",
-  //     params: [{ chainId: `0x${this.chainId.toString(16)}` }]
-  //   });
-
-  //   const stakingRewards = await this.getStakingRewards();
-
-  //   const totalSupply = await this.getTotalSupply();
-
-  //   const provider = this.signer.provider!;
-  //   const balance = await provider.getBalance(this.revenuePoolAddress);
-
-  //   return stakingRewards.div(totalSupply).mul(balance);
-  // }
 }

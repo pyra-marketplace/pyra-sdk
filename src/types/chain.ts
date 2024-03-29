@@ -1,4 +1,5 @@
 import { BigNumberish } from "ethers";
+import {RevenuePool} from "../abi/typechain/RevenuePool";
 
 export enum ChainId {
   Polygon = 137,
@@ -19,3 +20,5 @@ export enum TradeType {
   Buy,
   Sell
 }
+
+export type StakeStatus = RevenuePool.StakeStatusStruct;
