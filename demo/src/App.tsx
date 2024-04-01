@@ -189,7 +189,6 @@ function App() {
   /*** PyraMarket wirte operation */
 
   /*** PyraMarket read operation */
-
   const loadPyraMarkets = async () => {
     if (!address) {
       throw new Error("Not connect wallet");
@@ -275,6 +274,21 @@ function App() {
     console.log(ethers.utils.formatEther(totalSupply));
   };
 
+  const loadShareBalance = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const pyraMarket = new PyraMarket({
+      chainId,
+      connector
+    });
+    const res = await pyraMarket.loadShareBalance({
+      shareAddress,
+      userAddress: address
+    });
+    console.log(ethers.utils.formatEther(res));
+  };
+
   const loadShareBuyPrice = async () => {
     if (!address) {
       throw new Error("Not connect wallet");
@@ -305,7 +319,6 @@ function App() {
     console.log(ethers.utils.formatEther(res));
   };
   /*** PyraMarket read operation */
-
 
   /*** RevenuePool write operation */
   const stake = async () => {
@@ -657,6 +670,7 @@ function App() {
       <button onClick={() => loadShareTotalSupply()}>
         loadShareTotalSupply
       </button>
+      <button onClick={() => loadShareBalance()}>loadShareBalance</button>
       <button onClick={() => loadShareBuyPrice()}>loadShareBuyPrice</button>
       <button onClick={() => loadShareSellPrice()}>loadShareSellPrice</button>
       <br />
@@ -666,7 +680,9 @@ function App() {
       <button onClick={() => loadRevenuePoolBalance()}>
         loadRevenuePoolBalance
       </button>
-      <button onClick={() => loadClaimableRevenue()}>loadClaimableRevenue</button>
+      <button onClick={() => loadClaimableRevenue()}>
+        loadClaimableRevenue
+      </button>
       <br />
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>

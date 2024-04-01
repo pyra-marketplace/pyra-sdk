@@ -13,7 +13,6 @@ import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import { abiCoder } from "@pyra-marketplace/assets-sdk";
 import {
   PyraZoneRes,
   PyraZoneTierkeyActivityRes,

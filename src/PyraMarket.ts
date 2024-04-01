@@ -28,8 +28,9 @@ export class PyraMarket {
     chainId?: number;
     connector: Connector;
   }) {
-    this.pyraMarketAddress = DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
-    ?.PyraMarket;
+    this.pyraMarketAddress =
+      DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
+        ?.PyraMarket;
     const provider = connector.getProvider();
     const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
     this.signer = ethersProvider.getSigner();
@@ -56,10 +57,7 @@ export class PyraMarket {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.pyraMarket.createShare(
-      shareName,
-      shareSymbol
-    );
+    const tx = await this.pyraMarket.createShare(shareName, shareSymbol);
     const receipt = await tx.wait();
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "ShareCreated"
@@ -70,6 +68,29 @@ export class PyraMarket {
     const shareAddress: string = targetEvents[0].args[1];
     const revenuePoolAddress: string = targetEvents[0].args[2];
     return { shareAddress, revenuePoolAddress };
+  }
+
+  public async loadShareBalance({
+    shareAddress,
+    userAddress
+  }: {
+    shareAddress: string;
+    userAddress: string;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const balance = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "share__factory",
+      contractAddress: shareAddress,
+      method: "balanceOf",
+      params: [userAddress]
+    });
+    return balance;
   }
 
   public async loadBuyPrice({
@@ -234,7 +255,6 @@ export class PyraMarket {
       method: "getShareInfo",
       params: [creator]
     });
-
     return shareInfo;
   }
 
