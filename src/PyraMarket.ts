@@ -72,10 +72,10 @@ export class PyraMarket {
 
   public async loadShareBalance({
     shareAddress,
-    userAddress
+    address
   }: {
     shareAddress: string;
-    userAddress: string;
+    address: string;
   }) {
     if (!this.chainId) {
       throw new Error(
@@ -88,7 +88,7 @@ export class PyraMarket {
       contractFactory: "share__factory",
       contractAddress: shareAddress,
       method: "balanceOf",
-      params: [userAddress]
+      params: [address]
     });
     return balance;
   }

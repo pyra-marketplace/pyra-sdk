@@ -284,7 +284,7 @@ function App() {
     });
     const res = await pyraMarket.loadShareBalance({
       shareAddress,
-      userAddress: address
+      address
     });
     console.log(ethers.utils.formatEther(res));
   };
