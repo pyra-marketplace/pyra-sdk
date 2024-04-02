@@ -9,7 +9,7 @@ import {
   WatchlistRes
 } from "./types";
 import { PyraMarket__factory } from "./abi/typechain";
-import { DEPLOYED_ADDRESSES } from "./configs";
+import { DEPLOYED_ADDRESSES, RPC } from "./configs";
 import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
 import { switchNetwork } from "./utils/network";
@@ -31,15 +31,25 @@ export class PyraMarket {
     this.pyraMarketAddress =
       DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
         ?.PyraMarket;
-    const provider = connector.getProvider();
-    const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
-    this.signer = ethersProvider.getSigner();
+
     this.chainId = chainId;
     this.connector = connector;
-    this.pyraMarket = PyraMarket__factory.connect(
-      this.pyraMarketAddress,
-      this.signer
-    );
+    try {
+      const provider = connector.getProvider();
+      const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
+      this.signer = ethersProvider.getSigner();
+      this.pyraMarket = PyraMarket__factory.connect(
+        this.pyraMarketAddress,
+        this.signer
+      );
+    } catch (error) {
+      const rpcList = RPC[chainId as keyof typeof RPC];
+      const provider = new ethers.providers.JsonRpcProvider(rpcList[0]);
+      this.pyraMarket = PyraMarket__factory.connect(
+        this.pyraMarketAddress,
+        provider
+      );
+    }
   }
 
   public async createShare({

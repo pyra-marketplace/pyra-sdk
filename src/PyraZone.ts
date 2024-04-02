@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
 import {
   Connector,
   SYSTEM_CALL,
@@ -19,7 +19,7 @@ import {
   PyraZoneTierkeyHolderRes
 } from "./types";
 import { PyraZone__factory } from "./abi/typechain";
-import { DEPLOYED_ADDRESSES } from "./configs";
+import { DEPLOYED_ADDRESSES, RPC } from "./configs";
 import { TradeType } from "./types";
 import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
@@ -45,10 +45,13 @@ export class PyraZone extends DataAssetBase {
       assetContract,
       assetId
     });
-    if (!this.signer) {
-      throw new Error("Signer not found, please connect wallet");
+    try {
+      this.pyraZone = PyraZone__factory.connect(assetContract, this.signer!);
+    } catch (error) {
+      const rpcList = RPC[chainId as keyof typeof RPC];
+      const provider = new ethers.providers.JsonRpcProvider(rpcList[0]);
+      this.pyraZone = PyraZone__factory.connect(assetContract, provider);
     }
-    this.pyraZone = PyraZone__factory.connect(assetContract, this.signer);
   }
 
   public async createPyraZone() {

@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import { BigNumber, BigNumberish, Signer, ethers } from "ethers";
 import { Connector } from "@meteor-web3/connector";
 
@@ -5,6 +6,7 @@ import { ChainId, StakeStatus } from "./types";
 import { Share__factory, RevenuePool__factory } from "./abi/typechain";
 import { retryRPC } from "./utils/retryRPC";
 import { switchNetwork } from "./utils/network";
+import { RPC } from "./configs";
 
 export class RevenuePool {
   share;
@@ -28,18 +30,37 @@ export class RevenuePool {
   }) {
     this.shareAddress = shareAddress;
     this.revenuePoolAddress = revenuePoolAddress;
-    const provider = connector.getProvider();
-    const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
-    this.signer = ethersProvider.getSigner();
     this.chainId = chainId;
     this.connector = connector;
+    try {
+      const provider = connector.getProvider();
+      const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
+      this.signer = ethersProvider.getSigner();
+    } catch (error) {}
+
     if (shareAddress) {
-      this.share = Share__factory.connect(shareAddress, this.signer);
+      try {
+        this.share = Share__factory.connect(shareAddress, this.signer!);
+      } catch (error) {
+        const rpcList = RPC[chainId as keyof typeof RPC];
+        const provider = new ethers.providers.JsonRpcProvider(rpcList[0]);
+        this.share = Share__factory.connect(shareAddress, provider);
+      }
     }
-    this.revenuePool = RevenuePool__factory.connect(
-      revenuePoolAddress,
-      this.signer
-    );
+
+    try {
+      this.revenuePool = RevenuePool__factory.connect(
+        revenuePoolAddress,
+        this.signer!
+      );
+    } catch (error) {
+      const rpcList = RPC[chainId as keyof typeof RPC];
+      const provider = new ethers.providers.JsonRpcProvider(rpcList[0]);
+      this.revenuePool = RevenuePool__factory.connect(
+        this.revenuePoolAddress,
+        provider
+      );
+    }
   }
 
   public async stake(sharesAmount: BigNumberish) {
