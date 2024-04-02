@@ -223,7 +223,7 @@ export class PyraZone extends DataAssetBase {
     return zoneAsset;
   }
 
-  public async loadTierKeyBalance({
+  public async loadTierkeyBalance({
     tier,
     address
   }: {

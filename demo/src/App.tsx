@@ -28,8 +28,6 @@ let shareAddress: string;
 
 let revenuePoolAddress: string;
 
-let tierkeys: string[] = [];
-
 function App() {
   const [pkh, setPkh] = React.useState("");
   const [address, setAddress] = React.useState<string>();
@@ -537,7 +535,6 @@ function App() {
     });
     if (res.length > 0) {
       setAssetId(res[0].asset_id);
-      tierkeys = res[0].tierkeys;
     }
     console.log("loadPyraZones:", res);
   };
@@ -569,21 +566,21 @@ function App() {
     console.log("loadPyraZoneTierkeyActivities:", res);
   };
 
-  const loadTierKeyBalance = async () => {
+  const loadTierkeyBalance = async () => {
     const pyraZone = new PyraZone({
       chainId,
       assetId,
       connector
     });
 
-    const res = await pyraZone.loadTierKeyBalance({
+    const res = await pyraZone.loadTierkeyBalance({
       tier: 0,
       address: address!
     });
     console.log(res.toNumber());
   };
 
-  const loadTierKeyBuyPrice = async () => {
+  const loadTierkeyBuyPrice = async () => {
     const pyraZone = new PyraZone({
       chainId,
       assetId,
@@ -594,7 +591,7 @@ function App() {
     console.log(ethers.utils.formatEther(res));
   };
 
-  const loadTierKeySellPrice = async () => {
+  const loadTierkeySellPrice = async () => {
     const pyraZone = new PyraZone({
       chainId,
       assetId,
@@ -719,10 +716,10 @@ function App() {
       <button onClick={() => loadPyraZoneTierkeyActivities()}>
         loadPyraZoneTierkeyActivities
       </button>
-      <button onClick={() => loadTierKeyBalance()}>loadTierKeyBalance</button>
-      <button onClick={() => loadTierKeyBuyPrice()}>loadTierKeyBuyPrice</button>
-      <button onClick={() => loadTierKeySellPrice()}>
-        loadTierKeySellPrice
+      <button onClick={() => loadTierkeyBalance()}>loadTierkeyBalance</button>
+      <button onClick={() => loadTierkeyBuyPrice()}>loadTierkeyBuyPrice</button>
+      <button onClick={() => loadTierkeySellPrice()}>
+        loadTierkeySellPrice
       </button>
       <button onClick={() => loadFolderInPyraZone()}>
         loadFolderInPyraZone
