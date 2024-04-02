@@ -28,6 +28,8 @@ let shareAddress: string;
 
 let revenuePoolAddress: string;
 
+let tierkeys: string[] = [];
+
 function App() {
   const [pkh, setPkh] = React.useState("");
   const [address, setAddress] = React.useState<string>();
@@ -535,6 +537,7 @@ function App() {
     });
     if (res.length > 0) {
       setAssetId(res[0].asset_id);
+      tierkeys = res[0].tierkeys;
     }
     console.log("loadPyraZones:", res);
   };
@@ -564,6 +567,20 @@ function App() {
       tier
     });
     console.log("loadPyraZoneTierkeyActivities:", res);
+  };
+
+  const loadTierKeyBalance = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      assetId,
+      connector
+    });
+
+    const res = await pyraZone.loadTierKeyBalance({
+      tierkey: tierkeys[0],
+      address: address!
+    });
+    console.log(res.toNumber());
   };
 
   const loadTierKeyBuyPrice = async () => {
@@ -702,6 +719,7 @@ function App() {
       <button onClick={() => loadPyraZoneTierkeyActivities()}>
         loadPyraZoneTierkeyActivities
       </button>
+      <button onClick={() => loadTierKeyBalance()}>loadTierKeyBalance</button>
       <button onClick={() => loadTierKeyBuyPrice()}>loadTierKeyBuyPrice</button>
       <button onClick={() => loadTierKeySellPrice()}>
         loadTierKeySellPrice

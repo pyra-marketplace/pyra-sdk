@@ -4,6 +4,7 @@ import {
   PyraZone__factory,
   PyraMarket__factory,
   RevenuePool__factory,
+  Tierkey__factory,
   Share__factory
 } from "../abi/typechain";
 
@@ -11,6 +12,7 @@ export const ContractFactory = {
   pyraZone__factory: PyraZone__factory,
   pyraMarket__factory: PyraMarket__factory,
   revenuePool__factory: RevenuePool__factory,
+  tierkey__factory: Tierkey__factory,
   share__factory: Share__factory
 };
 

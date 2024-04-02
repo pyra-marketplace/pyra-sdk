@@ -223,6 +223,30 @@ export class PyraZone extends DataAssetBase {
     return zoneAsset;
   }
 
+  public async loadTierKeyBalance({
+    tierkey,
+    address
+  }: {
+    tierkey: string;
+    address: string;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const balance = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "tierkey__factory",
+      contractAddress: tierkey,
+      method: "balanceOf",
+      params: [address]
+    });
+
+    return balance;
+  }
+
   public async loadBuyPrice(tier: BigNumberish) {
     if (!this.assetId) {
       throw new Error(
