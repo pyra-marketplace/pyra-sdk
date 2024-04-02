@@ -577,7 +577,7 @@ function App() {
     });
 
     const res = await pyraZone.loadTierKeyBalance({
-      tierkey: tierkeys[0],
+      tier: 0,
       address: address!
     });
     console.log(res.toNumber());

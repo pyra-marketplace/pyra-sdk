@@ -224,10 +224,10 @@ export class PyraZone extends DataAssetBase {
   }
 
   public async loadTierKeyBalance({
-    tierkey,
+    tier,
     address
   }: {
-    tierkey: string;
+    tier: number;
     address: string;
   }) {
     if (!this.chainId) {
@@ -235,6 +235,9 @@ export class PyraZone extends DataAssetBase {
         "ChainId cannot be empty, please pass in through constructor"
       );
     }
+
+    const zoneAsset = await this.loadZoneAsset();
+    const tierkey = zoneAsset.tierkeys[tier];
 
     const balance = await retryRPC({
       chainId: this.chainId,
