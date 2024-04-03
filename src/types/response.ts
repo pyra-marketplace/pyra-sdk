@@ -15,7 +15,7 @@ export interface UserInfo {
 
 export interface PublisherProfileRes {
   publisher: string;
-  cover_iamge_url: string;
+  cover_image_url: string;
   create_at: string;
   update_at: string;
   user_info?: UserInfo;
