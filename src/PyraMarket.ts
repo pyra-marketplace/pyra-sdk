@@ -287,6 +287,43 @@ export class PyraMarket {
     return totalSupply;
   }
 
+  static async updatePublisherProfile({
+    watcher,
+    publisher,
+    connector
+  }: {
+    watcher: string;
+    publisher: string;
+    connector: Connector;
+  }) {
+    const codeRes: any = await http.request({
+      url: "code",
+      method: "post"
+    });
+    const sigObj = await connector.runOS({
+      method: SYSTEM_CALL.signWithSessionKey,
+      params: {
+        code: codeRes.code,
+        requestPath: `/api/v1/pyra-marketplace/watch-list/watch`
+      }
+    });
+    const { siweMessage, jws } = sigObj;
+    return http.request({
+      url: "pyra-marketplace/watch-list/watch",
+      method: "post",
+      params: {
+        watcher,
+        publisher
+      },
+      headers: {
+        Authorization: `Bearer ${(jws as any).signatures[0].protected}.${
+          (jws as any).payload
+        }.${(jws as any).signatures[0].signature}`,
+        "x-pyra-siwe": btoa(JSON.stringify(siweMessage))
+      }
+    });
+  }
+
   static async watch({
     watcher,
     publisher,
@@ -433,6 +470,7 @@ export class PyraMarket {
     chainId,
     share,
     publisher,
+    shareholder,
     page,
     pageSize,
     orderBy,
@@ -441,6 +479,7 @@ export class PyraMarket {
     chainId?: number;
     share?: string;
     publisher?: string;
+    shareholder?: string;
     page?: number;
     pageSize?: number;
     orderBy?: "total_amount";
@@ -454,6 +493,7 @@ export class PyraMarket {
           chain_id: chainId,
           share,
           publisher,
+          shareholder,
           page,
           page_size: pageSize,
           order_by: orderBy,
