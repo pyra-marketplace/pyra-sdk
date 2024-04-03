@@ -3,6 +3,7 @@ import { Connector, SYSTEM_CALL } from "@meteor-web3/connector";
 
 import {
   PublisherDailyRecordRes,
+  PublisherProfileRes,
   PyraMarketRes,
   PyraMarketShareActivityRes,
   PyraMarketShareHolderRes,
@@ -288,12 +289,12 @@ export class PyraMarket {
   }
 
   static async updatePublisherProfile({
-    watcher,
     publisher,
+    coverImageUrl,
     connector
   }: {
-    watcher: string;
     publisher: string;
+    coverImageUrl: string;
     connector: Connector;
   }) {
     const codeRes: any = await http.request({
@@ -304,16 +305,16 @@ export class PyraMarket {
       method: SYSTEM_CALL.signWithSessionKey,
       params: {
         code: codeRes.code,
-        requestPath: `/api/v1/pyra-marketplace/watch-list/watch`
+        requestPath: `/api/v1/pyra-marketplace/publisher/profile`
       }
     });
     const { siweMessage, jws } = sigObj;
     return http.request({
-      url: "pyra-marketplace/watch-list/watch",
+      url: "pyra-marketplace/publisher/profile",
       method: "post",
       params: {
-        watcher,
-        publisher
+        publisher,
+        cover_image_url: coverImageUrl
       },
       headers: {
         Authorization: `Bearer ${(jws as any).signatures[0].protected}.${
@@ -322,6 +323,19 @@ export class PyraMarket {
         "x-pyra-siwe": btoa(JSON.stringify(siweMessage))
       }
     });
+  }
+
+  static async loadPublisherProfile(publisher: string) {
+    const publisherProfile: PublisherProfileRes = (
+      await http.request({
+        url: "pyra-marketplace/publisher/profile",
+        method: "get",
+        params: {
+          publisher
+        }
+      })
+    ).data;
+    return publisherProfile;
   }
 
   static async watch({
@@ -362,12 +376,10 @@ export class PyraMarket {
   }
 
   static async unwatch({
-    chainId,
     watcher,
     publisher,
     connector
   }: {
-    chainId?: number;
     watcher: string;
     publisher: string;
     connector: Connector;

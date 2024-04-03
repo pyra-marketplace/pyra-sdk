@@ -118,7 +118,6 @@ function App() {
       throw new Error("need conenct wallet");
     }
     const res = await PyraMarket.unwatch({
-      chainId,
       watcher: address,
       publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e",
       connector
@@ -139,6 +138,28 @@ function App() {
     });
     console.log("watchlist:", res);
   };
+
+  const updatePublisherProfile = async () => {
+    if (!address) {
+      throw new Error("need conenct wallet");
+    }
+    const res = await PyraMarket.updatePublisherProfile({
+      publisher: address,
+      coverImageUrl: "https://cdn.vox-cdn.com/thumbor/9eUdMkl-i0seN4eBv4ahbeE9TtQ=/0x0:1920x1080/1200x800/filters:focal(807x387:1113x693)/cdn.vox-cdn.com/uploads/chorus_image/image/60956053/Sekiro_24.0.jpg",
+      connector
+    })
+
+    console.log("update profile:", res)
+  }
+
+  const loadPublisherProfile = async () => {
+    if (!address) {
+      throw new Error("need conenct wallet");
+    }
+    const res = await PyraMarket.loadPublisherProfile(address)
+
+    console.log("update profile:", res)
+  }
 
   const createShare = async () => {
     const pyraMarket = new PyraMarket({
@@ -713,6 +734,8 @@ function App() {
       <button onClick={watch}>watch</button>
       <button onClick={unwatch}>unwatch</button>
       <button onClick={loadWatchlist}>loadWatchlist</button>
+      <button onClick={updatePublisherProfile}>updatePublisherProfile</button>
+      <button onClick={loadPublisherProfile}>loadPublisherProfile</button>
       <button onClick={() => createShare()}>createShare</button>
       <button onClick={() => buyShares()}>buyShares</button>
       <button onClick={() => sellShares()}>sellShares</button>

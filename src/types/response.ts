@@ -5,6 +5,22 @@ export interface WatchlistRes {
   watched: boolean;
 }
 
+export interface UserInfo {
+  description: string;
+  id: string;
+  name: string;
+  profile_image_url: string;
+  username: string;
+}
+
+export interface PublisherProfileRes {
+  publisher: string;
+  cover_iamge_url: string;
+  create_at: string;
+  update_at: string;
+  user_info?: UserInfo;
+}
+
 export interface PyraZoneRes {
   chain_id: number;
   block_number: number;
@@ -21,14 +37,8 @@ export interface PyraZoneRes {
   total_values: string[];
   total_supplies: string[];
   tierkey_price: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
   files_count: number;
+  publisher_profile?: PublisherProfileRes;
 }
 
 export interface PyraZoneTierkeyHolderRes {
@@ -40,13 +50,7 @@ export interface PyraZoneTierkeyHolderRes {
   key_id: string;
   expired_at: string;
   is_burned: boolean;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
 }
 
 export interface PyraZoneTierkeyActivityRes {
@@ -66,13 +70,7 @@ export interface PyraZoneTierkeyActivityRes {
   liquidate_at?: string;
   liquidate_price?: string;
   liquidator?: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
 }
 
 export interface PyraMarketRes {
@@ -89,13 +87,7 @@ export interface PyraMarketRes {
   total_supply: string;
   total_value: string;
   total_volume: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  publisher_profile?: PublisherProfileRes;
 }
 
 export interface PyraMarketShareHolderRes {
@@ -105,13 +97,7 @@ export interface PyraMarketShareHolderRes {
   shareholder: string;
   total_amount: string;
   staked_amount: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
 }
 
 export interface PyraMarketShareActivityRes {
@@ -127,13 +113,7 @@ export interface PyraMarketShareActivityRes {
   sell_at?: string;
   sell_amount?: string;
   sell_price?: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
 }
 
 export interface RevenuePoolActivityRes {
@@ -142,20 +122,14 @@ export interface RevenuePoolActivityRes {
   tx_hash: string;
   revenue_pool: string;
   shareholder: string;
-  type: "Stake" | "Unstake" | "Claim",
+  type: "Stake" | "Unstake" | "Claim";
   stake_at?: string;
   stake_amount?: string;
   unstake_at?: string;
   unstake_amount?: string;
   claim_at?: string;
   claim_amount?: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
 }
 
 export interface PublisherDailyRecordRes {
