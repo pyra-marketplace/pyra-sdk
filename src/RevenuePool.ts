@@ -2,11 +2,12 @@
 import { BigNumber, BigNumberish, Signer, ethers } from "ethers";
 import { Connector } from "@meteor-web3/connector";
 
-import { ChainId, StakeStatus } from "./types";
+import { ChainId, RevenuePoolActivityRes, StakeStatus } from "./types";
 import { Share__factory, RevenuePool__factory } from "./abi/typechain";
 import { retryRPC } from "./utils/retryRPC";
 import { switchNetwork } from "./utils/network";
 import { RPC } from "./configs";
+import { http } from "./utils";
 
 export class RevenuePool {
   share;
@@ -180,5 +181,43 @@ export class RevenuePool {
     });
 
     return balance;
+  }
+
+  static async loadRevenuePoolActivities({
+    chainId,
+    type,
+    revenuePool,
+    shareholder,
+    page,
+    pageSize,
+    orderBy,
+    orderType
+  }: {
+    chainId?: number;
+    type?: "Stake" | "Unstake" | "Claim";
+    revenuePool?: string;
+    shareholder?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: "block_number";
+    orderType?: "asc" | "desc";
+  }) {
+    const revenuePoolActivities: RevenuePoolActivityRes[] = (
+      await http.request({
+        url: "pyra-marketplace/pyra-market/revenue-pool/activity",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          type,
+          revenue_pool: revenuePool,
+          shareholder,
+          page,
+          page_size: pageSize,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
+    return revenuePoolActivities;
   }
 }

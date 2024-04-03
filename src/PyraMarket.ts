@@ -2,6 +2,7 @@ import { BigNumberish, Signer, ethers } from "ethers";
 import { Connector, SYSTEM_CALL } from "@meteor-web3/connector";
 
 import {
+  PublisherDailyRecordRes,
   PyraMarketRes,
   PyraMarketShareActivityRes,
   PyraMarketShareHolderRes,
@@ -287,12 +288,10 @@ export class PyraMarket {
   }
 
   static async watch({
-    chainId,
     watcher,
     publisher,
     connector
   }: {
-    chainId?: number;
     watcher: string;
     publisher: string;
     connector: Connector;
@@ -305,14 +304,12 @@ export class PyraMarket {
       method: SYSTEM_CALL.signWithSessionKey,
       params: {
         code: codeRes.code,
-        requestPath: `/api/v1/${
-          chainId || "*"
-        }/pyra-marketplace/watch-list/watch`
+        requestPath: `/api/v1/pyra-marketplace/watch-list/watch`
       }
     });
     const { siweMessage, jws } = sigObj;
     return http.request({
-      url: `${chainId || "*"}/pyra-marketplace/watch-list/watch`,
+      url: "pyra-marketplace/watch-list/watch",
       method: "post",
       params: {
         watcher,
@@ -346,14 +343,12 @@ export class PyraMarket {
       method: SYSTEM_CALL.signWithSessionKey,
       params: {
         code: codeRes.code,
-        requestPath: `/api/v1/${
-          chainId || "*"
-        }/pyra-marketplace/watch-list/unwatch`
+        requestPath: `/api/v1/pyra-marketplace/watch-list/unwatch`
       }
     });
     const { siweMessage, jws } = sigObj;
     return http.request({
-      url: `${chainId || "*"}/pyra-marketplace/watch-list/unwatch`,
+      url: "pyra-marketplace/watch-list/unwatch",
       method: "post",
       params: {
         watcher,
@@ -370,6 +365,8 @@ export class PyraMarket {
 
   static async loadPyraMarkets({
     chainId,
+    share,
+    publisher,
     publishers,
     page,
     pageSize,
@@ -377,7 +374,9 @@ export class PyraMarket {
     orderType
   }: {
     chainId?: number;
-    publishers: string[];
+    share?: string;
+    publisher?: string;
+    publishers?: string[];
     page?: number;
     pageSize?: number;
     orderBy?:
@@ -390,14 +389,40 @@ export class PyraMarket {
   }) {
     const pyraMarkets: PyraMarketRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-market`,
+        url: "pyra-marketplace/pyra-market",
         method: "get",
         params: {
-          publishers: publishers.join(","),
+          chain_id: chainId,
+          share,
+          publisher,
+          publishers: publishers?.join(","),
           page,
           page_size: pageSize,
           order_by: orderBy,
           order_type: orderType
+        }
+      })
+    ).data;
+    return pyraMarkets;
+  }
+
+  static async loadTrendingPyraMarkets({
+    chainId,
+    page,
+    pageSize
+  }: {
+    chainId?: number;
+    page?: number;
+    pageSize?: number;
+  }) {
+    const pyraMarkets: PyraMarketRes[] = (
+      await http.request({
+        url: "/pyra-marketplace/pyra-market/trending",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          page,
+          page_size: pageSize
         }
       })
     ).data;
@@ -423,9 +448,10 @@ export class PyraMarket {
   }) {
     const shareHolders: PyraMarketShareHolderRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/holder`,
+        url: "pyra-marketplace/pyra-market/share/holder",
         method: "get",
         params: {
+          chain_id: chainId,
           share,
           publisher,
           page,
@@ -457,9 +483,10 @@ export class PyraMarket {
   }) {
     const shareActivities: PyraMarketShareActivityRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/activity`,
+        url: "pyra-marketplace/pyra-market/share/activity",
         method: "get",
         params: {
+          chain_id: chainId,
           share,
           publisher,
           page,
@@ -472,8 +499,30 @@ export class PyraMarket {
     return shareActivities;
   }
 
-  static async loadWatchlist({
+  static async loadPublisherDailyRecordChart({
     chainId,
+    publisher,
+    days
+  }: {
+    chainId: number;
+    publisher: string;
+    days: number;
+  }) {
+    const dailyRecords: PublisherDailyRecordRes[] = (
+      await http.request({
+        url: "/pyra-marketplace/publisher/daily-record/chart",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          publisher,
+          days
+        }
+      })
+    ).data;
+    return dailyRecords;
+  }
+
+  static async loadWatchlist({
     watcher,
     publisher,
     page,
@@ -481,7 +530,6 @@ export class PyraMarket {
     orderBy,
     orderType
   }: {
-    chainId?: number;
     watcher?: string;
     publisher?: string;
     page?: number;
@@ -491,7 +539,7 @@ export class PyraMarket {
   }) {
     const watchlist: WatchlistRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/watch-list`,
+        url: "pyra-marketplace/watch-list",
         method: "get",
         params: {
           watcher,

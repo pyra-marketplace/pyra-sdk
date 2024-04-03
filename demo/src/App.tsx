@@ -106,7 +106,6 @@ function App() {
       throw new Error("need conenct wallet");
     }
     const res = await PyraMarket.watch({
-      chainId,
       watcher: address,
       publisher: "0xD0167B1cc6CAb1e4e7C6f38d09EA35171d00b68e",
       connector
@@ -132,7 +131,6 @@ function App() {
       throw new Error("need conenct wallet");
     }
     const res = await PyraMarket.loadWatchlist({
-      chainId,
       watcher: address,
       page: 1,
       pageSize: 10,
@@ -209,6 +207,19 @@ function App() {
     console.log("loadPyraMarkets:", res);
   };
 
+  const loadTrendingPyraMarkets = async () => {
+    let res = await PyraMarket.loadTrendingPyraMarkets({
+      chainId
+    });
+
+    res = res.map((item) => ({
+      ...item,
+      total_value: ethers.utils.formatEther(item.total_value)
+    }));
+
+    console.log("loadTrendingPyraMarkets:", res);
+  };
+
   const loadPyraMarketShareHolders = async () => {
     const res = await PyraMarket.loadPyraMarketShareHolders({
       chainId,
@@ -247,6 +258,22 @@ function App() {
     }));
     console.log("loadPyraMarketShareActivities:", res);
   };
+
+  const loadPublisherDailyRecordChart = async () => {
+    if (!chainId) {
+      throw new Error("chain id must be pass");
+    }
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const res = await PyraMarket.loadPublisherDailyRecordChart({
+      chainId,
+      publisher: address,
+      days: 10
+    })
+
+    console.log("chart res:", res);
+  }
 
   const loadShareInfo = async () => {
     if (!address) {
@@ -380,6 +407,13 @@ function App() {
     const revenue = await revenuePool.loadClaimableRevenue();
     console.log("(RAW)Claimable revenue:", revenue.toString());
     console.log("(Ether)Claimable revenue:", ethers.utils.formatEther(revenue));
+  };
+
+  const loadRevenuePoolActivities = async () => {
+    const activities = await RevenuePool.loadRevenuePoolActivities({
+      chainId
+    });
+    console.log(activities);
   };
   /*** RevenuePool read operation */
 
@@ -540,10 +574,8 @@ function App() {
   };
 
   const loadTrendingPyraZones = async () => {
-    const ONE_WEEK = 3500 * 24 * 7;
-    const res = await PyraZone.loadPyraZones({
-      chainId,
-      recentTime: ONE_WEEK
+    const res = await PyraZone.loadTrendingPyraZones({
+      chainId
     });
     console.log("loadTrendingPyraZones:", res);
   };
@@ -668,12 +700,14 @@ function App() {
       <button onClick={() => info()}>info</button>
       <br />
       <button onClick={() => loadPyraMarkets()}>loadPyraMarkets</button>
+      <button onClick={loadTrendingPyraMarkets}>loadTrendingPyraMarkets</button>
       <button onClick={() => loadPyraMarketShareHolders()}>
         loadPyraMarketShareHolders
       </button>
       <button onClick={() => loadPyraMarketShareActivities()}>
         loadPyraMarketShareActivities
       </button>
+      <button onClick={loadPublisherDailyRecordChart}>loadPublisherDailyRecordChart</button>
       <button onClick={watch}>watch</button>
       <button onClick={unwatch}>unwatch</button>
       <button onClick={loadWatchlist}>loadWatchlist</button>
@@ -697,6 +731,9 @@ function App() {
       <button onClick={() => loadClaimableRevenue()}>
         loadClaimableRevenue
       </button>
+      <button onClick={loadRevenuePoolActivities}>
+        loadRevenuePoolActivities
+      </button>
       <br />
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
@@ -707,9 +744,7 @@ function App() {
       <button onClick={() => isAccessible()}>isAccessible</button>
       <button onClick={() => loadZoneAsset()}>loadZoneAsset</button>
       <button onClick={() => loadPyraZones()}>loadPyraZones</button>
-      <button onClick={() => loadTrendingPyraZones()}>
-        loadTrendingPyraZones
-      </button>
+      <button onClick={loadTrendingPyraZones}>loadTrendingPyraZones</button>
       <button onClick={() => loadPyraZoneTierkeyHolders()}>
         loadPyraZoneTierkeyHolders
       </button>

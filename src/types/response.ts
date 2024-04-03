@@ -2,7 +2,7 @@ export interface WatchlistRes {
   publisher: string;
   watcher: string;
   watch_at: string;
-  follow: boolean;
+  watched: boolean;
 }
 
 export interface PyraZoneRes {
@@ -28,7 +28,6 @@ export interface PyraZoneRes {
     profile_image_url: string;
     username: string;
   };
-  share_total_volume?: string;
   files_count: number;
 }
 
@@ -135,4 +134,33 @@ export interface PyraMarketShareActivityRes {
     profile_image_url: string;
     username: string;
   };
+}
+
+export interface RevenuePoolActivityRes {
+  chain_id: number;
+  block_number: number;
+  tx_hash: string;
+  revenue_pool: string;
+  shareholder: string;
+  type: "Stake" | "Unstake" | "Claim",
+  stake_at?: string;
+  stake_amount?: string;
+  unstake_at?: string;
+  unstake_amount?: string;
+  claim_at?: string;
+  claim_amount?: string;
+  user_info?: {
+    description: string;
+    id: string;
+    name: string;
+    profile_image_url: string;
+    username: string;
+  };
+}
+
+export interface PublisherDailyRecordRes {
+  chain_id: number;
+  publisher: string;
+  share_volume: string;
+  date: string;
 }
