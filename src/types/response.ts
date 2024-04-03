@@ -36,7 +36,7 @@ export interface PyraZoneRes {
   expirations: string[];
   total_values: string[];
   total_supplies: string[];
-  tierkey_price: string;
+  tierkey_prices: string[];
   files_count: number;
   publisher_profile?: PublisherProfileRes;
 }
