@@ -253,7 +253,7 @@ function App() {
         sell_amount: ethers.utils.formatEther(item.sell_amount)
       }),
       ...(item.sell_price && {
-        sell_amount: ethers.utils.formatEther(item.sell_price)
+        sell_price: ethers.utils.formatEther(item.sell_price)
       })
     }));
     console.log("loadPyraMarketShareActivities:", res);
@@ -270,10 +270,10 @@ function App() {
       chainId,
       publisher: address,
       days: 10
-    })
+    });
 
     console.log("chart res:", res);
-  }
+  };
 
   const loadShareInfo = async () => {
     if (!address) {
@@ -707,7 +707,9 @@ function App() {
       <button onClick={() => loadPyraMarketShareActivities()}>
         loadPyraMarketShareActivities
       </button>
-      <button onClick={loadPublisherDailyRecordChart}>loadPublisherDailyRecordChart</button>
+      <button onClick={loadPublisherDailyRecordChart}>
+        loadPublisherDailyRecordChart
+      </button>
       <button onClick={watch}>watch</button>
       <button onClick={unwatch}>unwatch</button>
       <button onClick={loadWatchlist}>loadWatchlist</button>
