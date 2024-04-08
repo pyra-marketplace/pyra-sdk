@@ -145,21 +145,22 @@ function App() {
     }
     const res = await PyraMarket.updatePublisherProfile({
       publisher: address,
-      coverImageUrl: "https://cdn.vox-cdn.com/thumbor/9eUdMkl-i0seN4eBv4ahbeE9TtQ=/0x0:1920x1080/1200x800/filters:focal(807x387:1113x693)/cdn.vox-cdn.com/uploads/chorus_image/image/60956053/Sekiro_24.0.jpg",
+      coverImageUrl:
+        "https://cdn.vox-cdn.com/thumbor/9eUdMkl-i0seN4eBv4ahbeE9TtQ=/0x0:1920x1080/1200x800/filters:focal(807x387:1113x693)/cdn.vox-cdn.com/uploads/chorus_image/image/60956053/Sekiro_24.0.jpg",
       connector
-    })
+    });
 
-    console.log("update profile:", res)
-  }
+    console.log("update profile:", res);
+  };
 
   const loadPublisherProfile = async () => {
     if (!address) {
       throw new Error("need conenct wallet");
     }
-    const res = await PyraMarket.loadPublisherProfile(address)
+    const res = await PyraMarket.loadPublisherProfile(address);
 
-    console.log("update profile:", res)
-  }
+    console.log("update profile:", res);
+  };
 
   const createShare = async () => {
     const pyraMarket = new PyraMarket({
@@ -251,6 +252,19 @@ function App() {
       pageSize: 10
     });
     console.log("loadPyraMarketShareHolders:", res);
+  };
+
+  const loadPyraMarketShareHolderPortfolios = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const res = await PyraMarket.loadPyraMarketShareHolderPortfolios({
+      chainId,
+      shareholder: address,
+      orderBy: "shares_price",
+      orderType: "desc",
+    });
+    console.log("loadPyraMarketShareHolderPortfolios:", res);
   };
 
   const loadPyraMarketShareActivities = async () => {
@@ -610,6 +624,19 @@ function App() {
     console.log("loadPyraZoneTierkeyHolders:", res);
   };
 
+  const loadPyraZoneTierkeyHolderPortfolios = async () => {
+    if (!address) {
+      throw new Error("Not connect wallet");
+    }
+    const res = await PyraZone.loadPyraZoneTierkeyHolderPortfolios({
+      chainId,
+      tierkeyHolder: address,
+      orderBy: "tierkeys_price",
+      orderType: "desc"
+    });
+    console.log("loadPyraZoneTierkeyHolderPortfolios:", res);
+  };
+
   const loadPyraZoneTierkeyActivities = async () => {
     const res = await PyraZone.loadPyraZoneTierkeyActivities({
       chainId,
@@ -725,6 +752,9 @@ function App() {
       <button onClick={() => loadPyraMarketShareHolders()}>
         loadPyraMarketShareHolders
       </button>
+      <button onClick={loadPyraMarketShareHolderPortfolios}>
+        loadPyraMarketShareHolderPortfolios
+      </button>
       <button onClick={() => loadPyraMarketShareActivities()}>
         loadPyraMarketShareActivities
       </button>
@@ -772,6 +802,9 @@ function App() {
       <button onClick={loadTrendingPyraZones}>loadTrendingPyraZones</button>
       <button onClick={() => loadPyraZoneTierkeyHolders()}>
         loadPyraZoneTierkeyHolders
+      </button>
+      <button onClick={loadPyraZoneTierkeyHolderPortfolios}>
+        loadPyraZoneTierkeyHolderPortfolios
       </button>
       <button onClick={() => loadPyraZoneTierkeyActivities()}>
         loadPyraZoneTierkeyActivities

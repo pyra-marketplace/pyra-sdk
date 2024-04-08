@@ -899,6 +899,32 @@ export class PyraZone extends DataAssetBase {
     return tierkeyHolders;
   }
 
+  static async loadPyraZoneTierkeyHolderPortfolios({
+    chainId,
+    tierkeyHolder,
+    orderBy,
+    orderType
+  }: {
+    chainId?: number;
+    tierkeyHolder?: string;
+    orderBy?: "tierkeys_price" | "update_at";
+    orderType?: "asc" | "desc";
+  }) {
+    const tierkeyHolders: PyraZoneTierkeyHolderRes[] = (
+      await http.request({
+        url: "pyra-marketplace/pyra-zone/tierkey/holder/portfolio",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          tierkey_holder: tierkeyHolder,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
+    return tierkeyHolders;
+  }
+
   static async loadPyraZoneTierkeyActivities({
     chainId,
     type,

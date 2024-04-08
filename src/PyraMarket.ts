@@ -6,6 +6,7 @@ import {
   PublisherProfileRes,
   PyraMarketRes,
   PyraMarketShareActivityRes,
+  PyraMarketShareHolderPortfolioRes,
   PyraMarketShareHolderRes,
   ShareInfo,
   WatchlistRes
@@ -457,10 +458,12 @@ export class PyraMarket {
 
   static async loadTrendingPyraMarkets({
     chainId,
+    days,
     page,
     pageSize
   }: {
     chainId?: number;
+    days?: number;    // default=7 in backend
     page?: number;
     pageSize?: number;
   }) {
@@ -470,6 +473,7 @@ export class PyraMarket {
         method: "get",
         params: {
           chain_id: chainId,
+          days,
           page,
           page_size: pageSize
         }
@@ -514,6 +518,32 @@ export class PyraMarket {
       })
     ).data;
     return shareHolders;
+  }
+
+  static async loadPyraMarketShareHolderPortfolios({
+    chainId,
+    shareholder,
+    orderBy,
+    orderType
+  }: {
+    chainId?: number;
+    shareholder?: string;
+    orderBy?: "shares_price" | "update_at";
+    orderType?: "asc" | "desc";
+  }) {
+    const shareHolderPortfolios: PyraMarketShareHolderPortfolioRes[] = (
+      await http.request({
+        url: "pyra-marketplace/pyra-market/share/holder/portfolio",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          shareholder,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
+    return shareHolderPortfolios;
   }
 
   static async loadPyraMarketShareActivities({

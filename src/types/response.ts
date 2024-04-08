@@ -52,6 +52,16 @@ export interface PyraZoneTierkeyHolderRes {
   user_info?: UserInfo;
 }
 
+export interface PyraZoneTierkeyHolderPortfolioRes {
+  chain_id: number;
+  asset_id: string;
+  tierkeys_count: number;
+  tierkeys_price: string;
+  update_at: number; 
+  publisher_profile?: PublisherProfileRes;
+  user_info?: UserInfo;
+}
+
 export interface PyraZoneTierkeyActivityRes {
   chain_id: number;
   block_number: number;
@@ -97,6 +107,16 @@ export interface PyraMarketShareHolderRes {
   shareholder: string;
   total_amount: string;
   staked_amount: string;
+  user_info?: UserInfo;
+}
+
+export interface PyraMarketShareHolderPortfolioRes {
+  chain_id: number;
+  publisher: string;
+  shares_amount: string;
+  shares_price: string;
+  update_at: number;
+  publisher_profile?: PublisherProfileRes;
   user_info?: UserInfo;
 }
 
