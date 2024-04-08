@@ -873,10 +873,12 @@ export class PyraZone extends DataAssetBase {
 
   static async loadTrendingPyraZones({
     chainId,
+    days,
     page,
     pageSize
   }: {
     chainId?: number;
+    days?: number; // default=7 in backend
     page?: number;
     pageSize?: number;
   }) {
@@ -886,6 +888,7 @@ export class PyraZone extends DataAssetBase {
         method: "get",
         params: {
           chain_id: chainId,
+          days,
           page,
           page_size: pageSize
         }
