@@ -53,13 +53,16 @@ export interface PyraZoneTierkeyHolderRes {
 }
 
 export interface PyraZoneTierkeyHolderPortfolioRes {
-  chain_id: number;
-  asset_id: string;
-  tierkeys_count: number;
-  tierkeys_price: string;
-  update_at: number; 
-  publisher_profile?: PublisherProfileRes;
-  user_info?: UserInfo;
+  portfolios: {
+    chain_id: number;
+    asset_id: string;
+    tierkeys_count: number;
+    tierkeys_price: string;
+    update_at: number; 
+    publisher_profile?: PublisherProfileRes;
+    user_info?: UserInfo;
+  }[],
+  total_tierkeys_price: string;
 }
 
 export interface PyraZoneTierkeyActivityRes {
@@ -96,6 +99,7 @@ export interface PyraMarketRes {
   total_supply: string;
   total_value: string;
   total_volume: string;
+  total_asset_files?: number;
   publisher_profile?: PublisherProfileRes;
   publisher_daily_records: PublisherDailyRecordRes[];
 }
@@ -111,13 +115,16 @@ export interface PyraMarketShareHolderRes {
 }
 
 export interface PyraMarketShareHolderPortfolioRes {
-  chain_id: number;
-  publisher: string;
-  shares_amount: string;
-  shares_price: string;
-  update_at: number;
-  publisher_profile?: PublisherProfileRes;
-  user_info?: UserInfo;
+  portfolios: {
+    chain_id: number;
+    publisher: string;
+    shares_amount: string;
+    shares_price: string;
+    update_at: number;
+    publisher_profile?: PublisherProfileRes;
+    user_info?: UserInfo;
+  }[],
+  total_shares_price: string
 }
 
 export interface PyraMarketShareActivityRes {
