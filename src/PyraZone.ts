@@ -945,7 +945,7 @@ export class PyraZone extends DataAssetBase {
     orderBy?: "tierkeys_price" | "update_at";
     orderType?: "asc" | "desc";
   }) {
-    const tierkeyHolders: PyraZoneTierkeyHolderRes[] = (
+    const tierkeyHolders: PyraZoneTierkeyHolderRes = (
       await http.request({
         url: "pyra-marketplace/pyra-zone/tierkey/holder/portfolio",
         method: "get",

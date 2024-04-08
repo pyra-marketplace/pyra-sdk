@@ -531,7 +531,7 @@ export class PyraMarket {
     orderBy?: "shares_price" | "update_at";
     orderType?: "asc" | "desc";
   }) {
-    const shareHolderPortfolios: PyraMarketShareHolderPortfolioRes[] = (
+    const shareHolderPortfolios: PyraMarketShareHolderPortfolioRes = (
       await http.request({
         url: "pyra-marketplace/pyra-market/share/holder/portfolio",
         method: "get",
