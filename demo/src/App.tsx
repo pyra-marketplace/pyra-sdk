@@ -262,7 +262,7 @@ function App() {
       chainId,
       shareholder: address,
       orderBy: "shares_price",
-      orderType: "desc",
+      orderType: "desc"
     });
     console.log("loadPyraMarketShareHolderPortfolios:", res);
   };

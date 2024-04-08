@@ -58,10 +58,10 @@ export interface PyraZoneTierkeyHolderPortfolioRes {
     asset_id: string;
     tierkeys_count: number;
     tierkeys_price: string;
-    update_at: number; 
+    update_at: number;
     publisher_profile?: PublisherProfileRes;
     user_info?: UserInfo;
-  }[],
+  }[];
   total_tierkeys_price: string;
 }
 
@@ -124,9 +124,9 @@ export interface PyraMarketShareHolderPortfolioRes {
     update_at: number;
     publisher_profile?: PublisherProfileRes;
     user_info?: UserInfo;
-  }[],
-  total_shares_price: string
-  total_claimed_revenue: string
+  }[];
+  total_shares_price: string;
+  total_claimed_revenue: string;
 }
 
 export interface PyraMarketShareActivityRes {

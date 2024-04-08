@@ -16,6 +16,7 @@ import {
 import {
   PyraZoneRes,
   PyraZoneTierkeyActivityRes,
+  PyraZoneTierkeyHolderPortfolioRes,
   PyraZoneTierkeyHolderRes
 } from "./types";
 import { PyraZone__factory } from "./abi/typechain";
@@ -313,7 +314,10 @@ export class PyraZone extends DataAssetBase {
     return price;
   }
 
-  public async loadSellPriceAfterDepreciated(tier: BigNumberish, expiredAt: string) {
+  public async loadSellPriceAfterDepreciated(
+    tier: BigNumberish,
+    expiredAt: string
+  ) {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -343,7 +347,7 @@ export class PyraZone extends DataAssetBase {
     const oneYear = BigNumber.from(31536000);
     const now = BigNumber.from(Math.floor(Date.now() / 1000));
     const remainingTime = BigNumber.from(expiredAt).sub(now);
-    const remainingPrice = price.mul(remainingTime).div(oneYear)
+    const remainingPrice = price.mul(remainingTime).div(oneYear);
 
     return remainingPrice;
   }
@@ -945,7 +949,7 @@ export class PyraZone extends DataAssetBase {
     orderBy?: "tierkeys_price" | "update_at";
     orderType?: "asc" | "desc";
   }) {
-    const tierkeyHolders: PyraZoneTierkeyHolderRes = (
+    const tierkeyHolders: PyraZoneTierkeyHolderPortfolioRes = (
       await http.request({
         url: "pyra-marketplace/pyra-zone/tierkey/holder/portfolio",
         method: "get",

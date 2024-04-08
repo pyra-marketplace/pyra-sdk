@@ -463,7 +463,7 @@ export class PyraMarket {
     pageSize
   }: {
     chainId?: number;
-    days?: number;    // default=7 in backend
+    days?: number; // default=7 in backend
     page?: number;
     pageSize?: number;
   }) {
