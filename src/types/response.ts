@@ -125,6 +125,7 @@ export interface PyraMarketShareHolderPortfolioRes {
     user_info?: UserInfo;
   }[],
   total_shares_price: string
+  total_claimed_revenue: string
 }
 
 export interface PyraMarketShareActivityRes {
