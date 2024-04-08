@@ -106,11 +106,12 @@ export interface PyraMarketRes {
 
 export interface PyraMarketShareHolderRes {
   chain_id: number;
+  claimed_revenue?: string;
   publisher: string;
   share: string;
   shareholder: string;
-  total_amount: string;
   staked_amount: string;
+  total_amount: string;
   user_info?: UserInfo;
 }
 

@@ -845,7 +845,7 @@ export class PyraZone extends DataAssetBase {
     page?: number;
     pageSize?: number;
     orderBy?: "block_number" | "tierkey_sales";
-    orderType?: "asc" | "desc"
+    orderType?: "asc" | "desc";
   }) {
     const pyraZones: PyraZoneRes[] = (
       await http.request({
@@ -870,7 +870,7 @@ export class PyraZone extends DataAssetBase {
   static async loadTrendingPyraZones({
     chainId,
     page,
-    pageSize,
+    pageSize
   }: {
     chainId?: number;
     page?: number;
@@ -883,7 +883,7 @@ export class PyraZone extends DataAssetBase {
         params: {
           chain_id: chainId,
           page,
-          page_size: pageSize,
+          page_size: pageSize
         }
       })
     ).data;
@@ -974,7 +974,7 @@ export class PyraZone extends DataAssetBase {
     orderType
   }: {
     chainId?: number;
-    type?: "Buy" | "Sell" | "Liquidate"
+    type?: "Buy" | "Sell" | "Liquidate";
     assetId?: string;
     tier?: number;
     tierkey?: string;
