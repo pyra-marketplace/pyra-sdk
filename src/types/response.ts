@@ -87,6 +87,7 @@ export interface PyraMarketRes {
   total_value: string;
   total_volume: string;
   publisher_profile?: PublisherProfileRes;
+  publisher_daily_records: PublisherDailyRecordRes[];
 }
 
 export interface PyraMarketShareHolderRes {
