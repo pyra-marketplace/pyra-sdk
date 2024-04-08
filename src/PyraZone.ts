@@ -313,6 +313,41 @@ export class PyraZone extends DataAssetBase {
     return price;
   }
 
+  public async loadSellPriceAfterDepreciated(tier: BigNumberish, expiredAt: string) {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const price: BigNumber = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraZone__factory",
+      contractAddress: this.assetContract,
+      method: "getTierkeyPrice",
+      params: [this.assetId, tier, TradeType.Sell]
+    });
+
+    const oneYear = BigNumber.from(31536000);
+    const now = BigNumber.from(Math.floor(Date.now() / 1000));
+    const remainingTime = BigNumber.from(expiredAt).sub(now);
+    const remainingPrice = price.mul(remainingTime).div(oneYear)
+
+    return remainingPrice;
+  }
+
   public async isAccessible({
     tier,
     account
