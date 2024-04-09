@@ -16,7 +16,9 @@
     "format": "prettier --config .prettierrc . --write",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build:scripts": "tsc scripts/index.ts --outDir scripts/dist",
+    "run:scripts": "node scripts/dist/scripts/index.js"
   },
   "peerDependencies": {
     "@meteor-web3/connector": "^1.0.36"
