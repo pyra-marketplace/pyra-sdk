@@ -6,7 +6,9 @@ import {
   SignalType,
   FolderType,
   Attached,
-  DataAsset
+  DataAsset,
+  StructuredFolder,
+  MirrorFileRecord
 } from "@meteor-web3/connector";
 
 import {
@@ -735,7 +737,7 @@ export class PyraZone extends DataAssetBase {
     return applyConditionsToFileRes;
   }
 
-  public async loadFolderInPyraZone(pyraZoneId: string) {
+  public async loadFoldersInPyraZone(pyraZoneId: string) {
     if (!pyraZoneId) {
       throw new Error("PyraZoneId cannot be empty");
     }
@@ -745,10 +747,10 @@ export class PyraZone extends DataAssetBase {
       params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
     });
 
-    return Object.values(folders)[0];
+    return folders;
   }
 
-  public async loadFoldersByTier(tier: number) {
+  public async loadFolderByTier(tier: number) {
     if (!tier && tier !== 0) {
       throw new Error("Tier cannot be empty");
     }
@@ -761,7 +763,7 @@ export class PyraZone extends DataAssetBase {
       params: { signals: [{ type: SignalType.asset, id: tierkey }] }
     });
 
-    return res;
+    return Object.values(res)?.[0] as StructuredFolder | undefined;
   }
 
   public async loadFilesInPyraZone(pyraZoneId: string) {
@@ -784,7 +786,7 @@ export class PyraZone extends DataAssetBase {
           ])
         )
       )
-    );
+    ) as MirrorFileRecord;
   }
 
   public async loadFilesByTier(tier: number) {
@@ -810,7 +812,7 @@ export class PyraZone extends DataAssetBase {
           ])
         )
       )
-    );
+    ) as MirrorFileRecord;
   }
 
   public async loadFilesByPkh({

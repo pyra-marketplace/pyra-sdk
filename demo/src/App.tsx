@@ -718,14 +718,24 @@ function App() {
     console.log(res);
   };
 
-  const loadFolderInPyraZone = async () => {
+  const loadFoldersInPyraZone = async () => {
     const pyraZone = new PyraZone({
       chainId,
       connector
     });
-    const folder = await pyraZone.loadFolderInPyraZone(assetId);
-    folderId = folder?.folderId;
-    console.log(folder);
+    const folderRecord = await pyraZone.loadFoldersInPyraZone(assetId);
+    folderId = Object.values(folderRecord)?.[0]?.folderId;
+    console.log(folderRecord);
+  };
+
+  const loadFolderByTier = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector,
+      assetId
+    });
+    const res = await pyraZone.loadFolderByTier(tier);
+    console.log(res);
   };
 
   const unlockFolder = async () => {
@@ -814,9 +824,10 @@ function App() {
       <button onClick={() => loadTierkeySellPrice()}>
         loadTierkeySellPrice
       </button>
-      <button onClick={() => loadFolderInPyraZone()}>
-        loadFolderInPyraZone
+      <button onClick={() => loadFoldersInPyraZone()}>
+        loadFoldersInPyraZone
       </button>
+      <button onClick={() => loadFolderByTier()}>loadFolderByTier</button>
       <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
       <button onClick={() => unlockFolder()}>unlockFolder</button>
       <button onClick={() => unlockFile()}>unlockFile</button>
