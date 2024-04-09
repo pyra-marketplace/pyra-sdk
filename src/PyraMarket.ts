@@ -292,10 +292,12 @@ export class PyraMarket {
   static async updatePublisherProfile({
     publisher,
     coverImageUrl,
+    nickName,
     connector
   }: {
     publisher: string;
-    coverImageUrl: string;
+    coverImageUrl?: string;
+    nickName: string;
     connector: Connector;
   }) {
     const codeRes: any = await http.request({
@@ -315,7 +317,8 @@ export class PyraMarket {
       method: "post",
       params: {
         publisher,
-        cover_image_url: coverImageUrl
+        cover_image_url: coverImageUrl,
+        nick_name: nickName
       },
       headers: {
         Authorization: `Bearer ${(jws as any).signatures[0].protected}.${

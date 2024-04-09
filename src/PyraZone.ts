@@ -124,7 +124,7 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const totalPrice = await this.pyraZone.getTierkeyPriceAfterFee(
+    const totalPrice = await this.pyraZone.getTierkeyPrice(
       this.assetId,
       tier,
       TradeType.Buy

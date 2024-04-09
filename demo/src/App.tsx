@@ -145,6 +145,7 @@ function App() {
     }
     const res = await PyraMarket.updatePublisherProfile({
       publisher: address,
+      nickName: "Default Nick",
       coverImageUrl:
         "https://cdn.vox-cdn.com/thumbor/9eUdMkl-i0seN4eBv4ahbeE9TtQ=/0x0:1920x1080/1200x800/filters:focal(807x387:1113x693)/cdn.vox-cdn.com/uploads/chorus_image/image/60956053/Sekiro_24.0.jpg",
       connector
@@ -168,8 +169,8 @@ function App() {
       connector
     });
     const res = await pyraMarket.createShare({
-      shareName: "Test Share",
-      shareSymbol: "TS"
+      shareName: "Canvas Share",
+      shareSymbol: "CAVS"
     });
     shareAddress = res.shareAddress;
     revenuePoolAddress = res.revenuePoolAddress;
