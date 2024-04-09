@@ -297,7 +297,7 @@ export class PyraMarket {
   }: {
     publisher: string;
     coverImageUrl?: string;
-    nickName: string;
+    nickName?: string;
     connector: Connector;
   }) {
     const codeRes: any = await http.request({
