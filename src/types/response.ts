@@ -49,6 +49,8 @@ export interface PyraZoneTierkeyHolderRes {
   key_id: string;
   expired_at: string;
   is_burned: boolean;
+  is_expired: boolean;
+  remaining_price: string;
   user_info?: UserInfo;
 }
 
