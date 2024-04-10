@@ -18,7 +18,9 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "prepare": "husky install",
     "build:scripts": "tsc scripts/index.ts --outDir scripts/dist",
-    "run:scripts": "node scripts/dist/scripts/index.js"
+    "run:scripts": "env-cmd -f .env node --experimental-specifier-resolution=node scripts/dist/scripts/index.js",
+    "build:transfer": "tsc scripts/transfer.ts --outDir scripts/dist/scripts",
+    "run:transfer": "env-cmd -f .env node --experimental-specifier-resolution=node scripts/dist/scripts/transfer.js"
   },
   "peerDependencies": {
     "@meteor-web3/connector": "^1.0.36"
@@ -43,6 +45,7 @@
     "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.5",
     "chai": "^4.3.8",
+    "env-cmd": "^10.1.0",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.28.0",
