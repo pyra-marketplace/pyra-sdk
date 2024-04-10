@@ -168,5 +168,7 @@ export interface PublisherDailyRecordRes {
   chain_id: number;
   publisher: string;
   share_volume: string;
+  share_price: string;
+  tierkey_trades: number;
   date: string;
 }
