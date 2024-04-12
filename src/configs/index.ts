@@ -4,6 +4,10 @@ export const DEPLOYED_ADDRESSES = {
   [ChainId.PolygonMumbai]: {
     PyraMarket: "0x6205F3D5afa741a64C6b99CeeD9fB5Fc45D40A2C",
     PyraZone: "0xe80111195F86B97717599D28E5B8bebFEdaf0AcA"
+  },
+  [ChainId.BaseSepolia]: {
+    PyraMarket: "0x70FdC17719C9aa12F7C6b8CcA6a24ffa72b6f2c5",
+    PyraZone: "0xac62bF853F1891Fa90ff76E582137BeFd9CB9B84"
   }
 };
 
