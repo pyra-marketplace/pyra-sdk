@@ -2,7 +2,24 @@ export interface WatchlistRes {
   publisher: string;
   watcher: string;
   watch_at: string;
-  follow: boolean;
+  watched: boolean;
+}
+
+export interface UserInfo {
+  description: string;
+  id: string;
+  name: string;
+  profile_image_url: string;
+  username: string;
+}
+
+export interface PublisherProfileRes {
+  publisher: string;
+  cover_image_url: string;
+  nick_name: string;
+  create_at: string;
+  update_at: string;
+  user_info?: UserInfo;
 }
 
 export interface PyraZoneRes {
@@ -18,18 +35,10 @@ export interface PyraZoneRes {
   tierkeys: string[];
   tierkey_sales: number;
   expirations: string[];
-  total_values: string[];
   total_supplies: string[];
-  tierkey_price: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
-  share_total_volume?: string;
+  tierkey_prices: string[];
   files_count: number;
+  publisher_profile?: PublisherProfileRes;
 }
 
 export interface PyraZoneTierkeyHolderRes {
@@ -41,13 +50,22 @@ export interface PyraZoneTierkeyHolderRes {
   key_id: string;
   expired_at: string;
   is_burned: boolean;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  is_expired: boolean;
+  remaining_price: string;
+  user_info?: UserInfo;
+}
+
+export interface PyraZoneTierkeyHolderPortfolioRes {
+  portfolios: {
+    chain_id: number;
+    asset_id: string;
+    tierkeys_count: number;
+    tierkeys_price: string;
+    update_at: number;
+    publisher_profile?: PublisherProfileRes;
+    user_info?: UserInfo;
+  }[];
+  total_tierkeys_price: string;
 }
 
 export interface PyraZoneTierkeyActivityRes {
@@ -67,13 +85,7 @@ export interface PyraZoneTierkeyActivityRes {
   liquidate_at?: string;
   liquidate_price?: string;
   liquidator?: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
 }
 
 export interface PyraMarketRes {
@@ -90,29 +102,34 @@ export interface PyraMarketRes {
   total_supply: string;
   total_value: string;
   total_volume: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  total_asset_files?: number;
+  publisher_profile?: PublisherProfileRes;
+  publisher_daily_records: PublisherDailyRecordRes[];
 }
 
 export interface PyraMarketShareHolderRes {
   chain_id: number;
+  claimed_revenue?: string;
   publisher: string;
   share: string;
   shareholder: string;
-  total_amount: string;
   staked_amount: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  total_amount: string;
+  user_info?: UserInfo;
+}
+
+export interface PyraMarketShareHolderPortfolioRes {
+  portfolios: {
+    chain_id: number;
+    publisher: string;
+    shares_amount: string;
+    shares_price: string;
+    update_at: number;
+    publisher_profile?: PublisherProfileRes;
+    user_info?: UserInfo;
+  }[];
+  total_shares_price: string;
+  total_claimed_revenue: string;
 }
 
 export interface PyraMarketShareActivityRes {
@@ -128,11 +145,30 @@ export interface PyraMarketShareActivityRes {
   sell_at?: string;
   sell_amount?: string;
   sell_price?: string;
-  user_info?: {
-    description: string;
-    id: string;
-    name: string;
-    profile_image_url: string;
-    username: string;
-  };
+  user_info?: UserInfo;
+}
+
+export interface RevenuePoolActivityRes {
+  chain_id: number;
+  block_number: number;
+  tx_hash: string;
+  revenue_pool: string;
+  shareholder: string;
+  type: "Stake" | "Unstake" | "Claim";
+  stake_at?: string;
+  stake_amount?: string;
+  unstake_at?: string;
+  unstake_amount?: string;
+  claim_at?: string;
+  claim_amount?: string;
+  user_info?: UserInfo;
+}
+
+export interface PublisherDailyRecordRes {
+  chain_id: number;
+  publisher: string;
+  share_volume: string;
+  share_price: string;
+  tierkey_trades: number;
+  date: string;
 }

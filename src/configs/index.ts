@@ -2,8 +2,12 @@ import { ChainId } from "../types";
 
 export const DEPLOYED_ADDRESSES = {
   [ChainId.PolygonMumbai]: {
-    PyraMarket: "0x14a144575c4358D55434b179C1cAE6B2c6ff7655",
-    PyraZone: "0x67804E153F9675E2173142B76f9fe949b2b20bDE"
+    PyraMarket: "0x6205F3D5afa741a64C6b99CeeD9fB5Fc45D40A2C",
+    PyraZone: "0xe80111195F86B97717599D28E5B8bebFEdaf0AcA"
+  },
+  [ChainId.BaseSepolia]: {
+    PyraMarket: "0x70FdC17719C9aa12F7C6b8CcA6a24ffa72b6f2c5",
+    PyraZone: "0xac62bF853F1891Fa90ff76E582137BeFd9CB9B84"
   }
 };
 
@@ -22,5 +26,15 @@ export const RPC = {
     "https://polygon-mumbai.blockpi.network/v1/rpc/public",
     "https://rpc.ankr.com/polygon_mumbai",
     "https://polygon-mumbai-bor-rpc.publicnode.com"
+  ],
+  [ChainId.Base]: [
+    "https://base-rpc.publicnode.com",
+    "https://base.blockpi.network/v1/rpc/public",
+    "https://base.llamarpc.com"
+  ],
+  [ChainId.BaseSepolia]: [
+    "https://public.stackup.sh/api/v1/node/base-sepolia",
+    "https://base-sepolia.blockpi.network/v1/rpc/public",
+    "https://base-sepolia-rpc.publicnode.com"
   ]
 };

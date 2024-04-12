@@ -1,4 +1,4 @@
-import { BigNumberish } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
 import {
   Connector,
   SYSTEM_CALL,
@@ -6,21 +6,23 @@ import {
   SignalType,
   FolderType,
   Attached,
-  DataAsset
+  DataAsset,
+  StructuredFolder,
+  MirrorFileRecord
 } from "@meteor-web3/connector";
 
 import {
   DataAssetBase,
   PublishParams
 } from "@pyra-marketplace/assets-sdk/data-asset";
-import { abiCoder } from "@pyra-marketplace/assets-sdk";
 import {
   PyraZoneRes,
   PyraZoneTierkeyActivityRes,
+  PyraZoneTierkeyHolderPortfolioRes,
   PyraZoneTierkeyHolderRes
 } from "./types";
 import { PyraZone__factory } from "./abi/typechain";
-import { DEPLOYED_ADDRESSES } from "./configs";
+import { DEPLOYED_ADDRESSES, RPC } from "./configs";
 import { TradeType } from "./types";
 import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
@@ -46,10 +48,13 @@ export class PyraZone extends DataAssetBase {
       assetContract,
       assetId
     });
-    if (!this.signer) {
-      throw new Error("Signer not found, please connect wallet");
+    try {
+      this.pyraZone = PyraZone__factory.connect(assetContract, this.signer!);
+    } catch (error) {
+      const rpcList = RPC[chainId as keyof typeof RPC];
+      const provider = new ethers.providers.JsonRpcProvider(rpcList[0]);
+      this.pyraZone = PyraZone__factory.connect(assetContract, provider);
     }
-    this.pyraZone = PyraZone__factory.connect(assetContract, this.signer);
   }
 
   public async createPyraZone() {
@@ -65,8 +70,7 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const expiration = 3600 * 24 * 7; // 1 week
-    const data: string = abiCoder.encode(["uint256"], [expiration]);
+    const data: string = "0x";
     const actions: string[] = [];
     const actionInitDatas: string[] = [];
 
@@ -78,7 +82,7 @@ export class PyraZone extends DataAssetBase {
     return await this.createAssetHandler(publishParams);
   }
 
-  public async createTierkey(expiration: BigNumberish) {
+  public async createTierkey() {
     if (!this.assetId) {
       throw new Error(
         "AssetId cannot be empty, please call createAssetHandler first"
@@ -93,7 +97,7 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.pyraZone.createTierkey(this.assetId, expiration);
+    const tx = await this.pyraZone.createTierkey(this.assetId);
     const receipt = await tx.wait();
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "TierkeyCreated"
@@ -122,7 +126,7 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const totalPrice = await this.pyraZone.getTierkeyPriceAfterFee(
+    const totalPrice = await this.pyraZone.getTierkeyPrice(
       this.assetId,
       tier,
       TradeType.Buy
@@ -163,11 +167,36 @@ export class PyraZone extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId, {
-      gasPrice: 2000,
-      gasLimit: 200000
-    });
+    const tx = await this.pyraZone.sellTierkey(this.assetId, tier, keyId);
     await tx.wait();
+  }
+
+  public async skim() {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
+
+    const tx = await this.pyraZone.skim(this.assetId);
+    const receipt = await tx.wait();
+
+    const targetEvents = receipt.events?.filter(
+      (e: any) => e.event === "Skimed"
+    );
+    if (!targetEvents || targetEvents.length === 0 || !targetEvents[0].args) {
+      throw new Error("Filter Skimed event failed");
+    }
+    const skimAmount: BigNumber = targetEvents[0].args[4];
+    return skimAmount;
   }
 
   public async loadZoneAsset() {
@@ -192,12 +221,39 @@ export class PyraZone extends DataAssetBase {
     const zoneAsset = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getZoneAsset",
       params: [this.assetId]
     });
 
     return zoneAsset;
+  }
+
+  public async loadTierkeyBalance({
+    tier,
+    address
+  }: {
+    tier: number;
+    address: string;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const zoneAsset = await this.loadZoneAsset();
+    const tierkey = zoneAsset.tierkeys[tier];
+
+    const balance = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "tierkey__factory",
+      contractAddress: tierkey,
+      method: "balanceOf",
+      params: [address]
+    });
+
+    return balance;
   }
 
   public async loadBuyPrice(tier: BigNumberish) {
@@ -222,7 +278,7 @@ export class PyraZone extends DataAssetBase {
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getTierkeyPrice",
       params: [this.assetId, tier, TradeType.Buy]
     });
@@ -252,12 +308,50 @@ export class PyraZone extends DataAssetBase {
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "getTierkeyPrice",
       params: [this.assetId, tier, TradeType.Sell]
     });
 
     return price;
+  }
+
+  public async loadSellPriceAfterDepreciated(
+    tier: BigNumberish,
+    expiredAt: string
+  ) {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const price: BigNumber = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "pyraZone__factory",
+      contractAddress: this.assetContract,
+      method: "getTierkeyPrice",
+      params: [this.assetId, tier, TradeType.Sell]
+    });
+
+    const oneYear = BigNumber.from(31536000);
+    const now = BigNumber.from(Math.floor(Date.now() / 1000));
+    const remainingTime = BigNumber.from(expiredAt).sub(now);
+    const remainingPrice = price.mul(remainingTime).div(oneYear);
+
+    return remainingPrice;
   }
 
   public async isAccessible({
@@ -288,7 +382,7 @@ export class PyraZone extends DataAssetBase {
     const res = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraZone__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.assetContract,
       method: "isAccessible",
       params: [this.assetId, account, tier]
     });
@@ -643,7 +737,7 @@ export class PyraZone extends DataAssetBase {
     return applyConditionsToFileRes;
   }
 
-  public async loadFolderInPyraZone(pyraZoneId: string) {
+  public async loadFoldersInPyraZone(pyraZoneId: string) {
     if (!pyraZoneId) {
       throw new Error("PyraZoneId cannot be empty");
     }
@@ -653,10 +747,10 @@ export class PyraZone extends DataAssetBase {
       params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
     });
 
-    return Object.values(folders)[0];
+    return folders;
   }
 
-  public async loadFoldersByTier(tier: number) {
+  public async loadFolderByTier(tier: number) {
     if (!tier && tier !== 0) {
       throw new Error("Tier cannot be empty");
     }
@@ -669,7 +763,7 @@ export class PyraZone extends DataAssetBase {
       params: { signals: [{ type: SignalType.asset, id: tierkey }] }
     });
 
-    return res;
+    return Object.values(res)?.[0] as StructuredFolder | undefined;
   }
 
   public async loadFilesInPyraZone(pyraZoneId: string) {
@@ -692,7 +786,7 @@ export class PyraZone extends DataAssetBase {
           ])
         )
       )
-    );
+    ) as MirrorFileRecord;
   }
 
   public async loadFilesByTier(tier: number) {
@@ -718,7 +812,7 @@ export class PyraZone extends DataAssetBase {
           ])
         )
       )
-    );
+    ) as MirrorFileRecord;
   }
 
   public async loadFilesByPkh({
@@ -740,35 +834,65 @@ export class PyraZone extends DataAssetBase {
 
   static async loadPyraZones({
     chainId,
+    assetId,
+    publisher,
     assetIds,
     publishers,
     page,
     pageSize,
     orderBy,
-    orderType,
-    recentTime
+    orderType
   }: {
     chainId?: number;
+    assetId?: string;
+    publisher?: string;
     assetIds?: string[];
     publishers?: string[];
     page?: number;
     pageSize?: number;
     orderBy?: "block_number" | "tierkey_sales";
     orderType?: "asc" | "desc";
-    recentTime?: number;
   }) {
     const pyraZones: PyraZoneRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-zone`,
+        url: "pyra-marketplace/pyra-zone",
         method: "get",
         params: {
+          chain_id: chainId,
+          asset_id: assetId,
+          publisher,
           asset_ids: assetIds?.join(","),
           publishers: publishers?.join(","),
           page,
           page_size: pageSize,
           order_by: orderBy,
-          order_type: orderType,
-          recent_time: recentTime
+          order_type: orderType
+        }
+      })
+    ).data;
+    return pyraZones;
+  }
+
+  static async loadTrendingPyraZones({
+    chainId,
+    days,
+    page,
+    pageSize
+  }: {
+    chainId?: number;
+    days?: number; // default=7 in backend
+    page?: number;
+    pageSize?: number;
+  }) {
+    const pyraZones: PyraZoneRes[] = (
+      await http.request({
+        url: "/pyra-marketplace/pyra-zone/trending",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          days,
+          page,
+          page_size: pageSize
         }
       })
     ).data;
@@ -780,6 +904,8 @@ export class PyraZone extends DataAssetBase {
     assetId,
     tier,
     tierkey,
+    tierkeyHolder,
+    keyId,
     page,
     pageSize,
     orderBy,
@@ -789,6 +915,8 @@ export class PyraZone extends DataAssetBase {
     assetId?: string;
     tier?: number;
     tierkey?: string;
+    tierkeyHolder?: string;
+    keyId?: string;
     page?: number;
     pageSize?: number;
     orderBy?: "key_id";
@@ -796,12 +924,15 @@ export class PyraZone extends DataAssetBase {
   }) {
     const tierkeyHolders: PyraZoneTierkeyHolderRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/holder`,
+        url: "pyra-marketplace/pyra-zone/tierkey/holder",
         method: "get",
         params: {
+          chain_id: chainId,
           asset_id: assetId,
           tier,
           tierkey,
+          tierkey_holder: tierkeyHolder,
+          key_id: keyId,
           page,
           page_size: pageSize,
           order_by: orderBy,
@@ -812,20 +943,52 @@ export class PyraZone extends DataAssetBase {
     return tierkeyHolders;
   }
 
+  static async loadPyraZoneTierkeyHolderPortfolios({
+    chainId,
+    tierkeyHolder,
+    orderBy,
+    orderType
+  }: {
+    chainId?: number;
+    tierkeyHolder?: string;
+    orderBy?: "tierkeys_price" | "update_at";
+    orderType?: "asc" | "desc";
+  }) {
+    const tierkeyHolders: PyraZoneTierkeyHolderPortfolioRes = (
+      await http.request({
+        url: "pyra-marketplace/pyra-zone/tierkey/holder/portfolio",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          tierkey_holder: tierkeyHolder,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
+    return tierkeyHolders;
+  }
+
   static async loadPyraZoneTierkeyActivities({
     chainId,
+    type,
     assetId,
     tier,
     tierkey,
+    tierkeyHolder,
+    keyId,
     page,
     pageSize,
     orderBy,
     orderType
   }: {
     chainId?: number;
+    type?: "Buy" | "Sell" | "Liquidate";
     assetId?: string;
     tier?: number;
     tierkey?: string;
+    tierkeyHolder?: string;
+    keyId?: string;
     page?: number;
     pageSize?: number;
     orderBy?: "block_number";
@@ -833,12 +996,16 @@ export class PyraZone extends DataAssetBase {
   }) {
     const tierkeyActivities: PyraZoneTierkeyActivityRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-zone/tierkey/activity`,
+        url: "pyra-marketplace/pyra-zone/tierkey/activity",
         method: "get",
         params: {
+          chain_id: chainId,
+          type,
           asset_id: assetId,
           tier,
           tierkey,
+          tierkey_holder: tierkeyHolder,
+          key_id: keyId,
           page,
           page_size: pageSize,
           order_by: orderBy,

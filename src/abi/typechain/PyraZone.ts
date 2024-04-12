@@ -96,39 +96,40 @@ export declare namespace IDataMonetizer {
 }
 
 export declare namespace IPyraZone {
+  export type SkimStatusStruct = {
+    balance: BigNumberish;
+    lastSkimAt: BigNumberish;
+  };
+
+  export type SkimStatusStructOutput = [BigNumber, BigNumber] & {
+    balance: BigNumber;
+    lastSkimAt: BigNumber;
+  };
+
   export type ZoneAssetStruct = {
     publishAt: BigNumberish;
     publicationId: BigNumberish;
     actions: string[];
     tierkeys: string[];
-    expirations: BigNumberish[];
-    totalValues: BigNumberish[];
   };
 
   export type ZoneAssetStructOutput = [
     BigNumber,
     BigNumber,
     string[],
-    string[],
-    BigNumber[],
-    BigNumber[]
+    string[]
   ] & {
     publishAt: BigNumber;
     publicationId: BigNumber;
     actions: string[];
     tierkeys: string[];
-    expirations: BigNumber[];
-    totalValues: BigNumber[];
   };
 }
 
 export interface PyraZoneInterface extends utils.Interface {
   functions: {
-    "BASE_FEE_POINT()": FunctionFragment;
-    "OWNER_FEE_POINT()": FunctionFragment;
-    "PROTOCOL_FEE_POINT()": FunctionFragment;
-    "PROTOCOL_TREASURY()": FunctionFragment;
     "PYRA_MARKET()": FunctionFragment;
+    "TIERKEY_EXPIRATION()": FunctionFragment;
     "act((bytes32,address[],bytes[]))": FunctionFragment;
     "actWithSig((bytes32,address[],bytes[]),(address,uint8,bytes32,bytes32,uint256))": FunctionFragment;
     "addActions((bytes32,address[],bytes[]))": FunctionFragment;
@@ -137,13 +138,14 @@ export interface PyraZoneInterface extends utils.Interface {
     "assetIdByPublisher(address)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "buyTierkey(bytes32,uint256)": FunctionFragment;
-    "createTierkey(bytes32,uint256)": FunctionFragment;
+    "createTierkey(bytes32)": FunctionFragment;
     "eip712Domain()": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getAsset(bytes32)": FunctionFragment;
     "getAssetOwner(bytes32)": FunctionFragment;
     "getDomainSeparator()": FunctionFragment;
     "getSigNonce(address)": FunctionFragment;
+    "getSkimStatus(bytes32)": FunctionFragment;
     "getTierkeyPrice(bytes32,uint256,uint8)": FunctionFragment;
     "getTierkeyPriceAfterFee(bytes32,uint256,uint8)": FunctionFragment;
     "getZoneAsset(bytes32)": FunctionFragment;
@@ -159,6 +161,7 @@ export interface PyraZoneInterface extends utils.Interface {
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
     "sellTierkey(bytes32,uint256,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
+    "skim(bytes32)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokenByIndex(uint256)": FunctionFragment;
@@ -170,11 +173,8 @@ export interface PyraZoneInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "BASE_FEE_POINT"
-      | "OWNER_FEE_POINT"
-      | "PROTOCOL_FEE_POINT"
-      | "PROTOCOL_TREASURY"
       | "PYRA_MARKET"
+      | "TIERKEY_EXPIRATION"
       | "act"
       | "actWithSig"
       | "addActions"
@@ -190,6 +190,7 @@ export interface PyraZoneInterface extends utils.Interface {
       | "getAssetOwner"
       | "getDomainSeparator"
       | "getSigNonce"
+      | "getSkimStatus"
       | "getTierkeyPrice"
       | "getTierkeyPriceAfterFee"
       | "getZoneAsset"
@@ -205,6 +206,7 @@ export interface PyraZoneInterface extends utils.Interface {
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "sellTierkey"
       | "setApprovalForAll"
+      | "skim"
       | "supportsInterface"
       | "symbol"
       | "tokenByIndex"
@@ -215,23 +217,11 @@ export interface PyraZoneInterface extends utils.Interface {
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "BASE_FEE_POINT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "OWNER_FEE_POINT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "PROTOCOL_FEE_POINT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "PROTOCOL_TREASURY",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "PYRA_MARKET",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "TIERKEY_EXPIRATION",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -271,7 +261,7 @@ export interface PyraZoneInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createTierkey",
-    values: [BytesLike, BigNumberish]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "eip712Domain",
@@ -291,6 +281,10 @@ export interface PyraZoneInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "getSigNonce", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getSkimStatus",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "getTierkeyPrice",
     values: [BytesLike, BigNumberish, BigNumberish]
@@ -351,6 +345,7 @@ export interface PyraZoneInterface extends utils.Interface {
     functionFragment: "setApprovalForAll",
     values: [string, boolean]
   ): string;
+  encodeFunctionData(functionFragment: "skim", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
@@ -378,23 +373,11 @@ export interface PyraZoneInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "BASE_FEE_POINT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "OWNER_FEE_POINT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "PROTOCOL_FEE_POINT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "PROTOCOL_TREASURY",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "PYRA_MARKET",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "TIERKEY_EXPIRATION",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "act", data: BytesLike): Result;
@@ -434,6 +417,10 @@ export interface PyraZoneInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getSigNonce",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSkimStatus",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -487,6 +474,7 @@ export interface PyraZoneInterface extends utils.Interface {
     functionFragment: "setApprovalForAll",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "skim", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -517,6 +505,7 @@ export interface PyraZoneInterface extends utils.Interface {
     "AssetActionsAdded(bytes32,address[],bytes[])": EventFragment;
     "AssetPublished(bytes32,address,uint256,uint256,bytes,address[],bytes[])": EventFragment;
     "EIP712DomainChanged()": EventFragment;
+    "Skimed(bytes32,address,uint256,address,uint256)": EventFragment;
     "TierkeyBought(bytes32,uint256,uint256,uint256,address,uint256)": EventFragment;
     "TierkeyCreated(bytes32,uint256,address,uint256)": EventFragment;
     "TierkeyLiquidated(bytes32,uint256,uint256,uint256,address,uint256)": EventFragment;
@@ -530,6 +519,7 @@ export interface PyraZoneInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "AssetActionsAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AssetPublished"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EIP712DomainChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Skimed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TierkeyBought"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TierkeyCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TierkeyLiquidated"): EventFragment;
@@ -613,6 +603,20 @@ export type EIP712DomainChangedEvent = TypedEvent<
 
 export type EIP712DomainChangedEventFilter =
   TypedEventFilter<EIP712DomainChangedEvent>;
+
+export interface SkimedEventObject {
+  assetId: string;
+  revenuePool: string;
+  skimAt: BigNumber;
+  skimmer: string;
+  skimAmount: BigNumber;
+}
+export type SkimedEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber],
+  SkimedEventObject
+>;
+
+export type SkimedEventFilter = TypedEventFilter<SkimedEvent>;
 
 export interface TierkeyBoughtEventObject {
   assetId: string;
@@ -713,15 +717,9 @@ export interface PyraZone extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    BASE_FEE_POINT(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    OWNER_FEE_POINT(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    PROTOCOL_FEE_POINT(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<[string]>;
-
     PYRA_MARKET(overrides?: CallOverrides): Promise<[string]>;
+
+    TIERKEY_EXPIRATION(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     act(
       actParams: IDataMonetizer.ActParamsStruct,
@@ -766,7 +764,6 @@ export interface PyraZone extends BaseContract {
 
     createTierkey(
       assetId: BytesLike,
-      expiration: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -805,6 +802,11 @@ export interface PyraZone extends BaseContract {
       signer: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    getSkimStatus(
+      assetId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[IPyraZone.SkimStatusStructOutput]>;
 
     getTierkeyPrice(
       assetId: BytesLike,
@@ -898,6 +900,11 @@ export interface PyraZone extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    skim(
+      assetId: BytesLike,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -931,15 +938,9 @@ export interface PyraZone extends BaseContract {
     ): Promise<[void]>;
   };
 
-  BASE_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-  OWNER_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-  PROTOCOL_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-  PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<string>;
-
   PYRA_MARKET(overrides?: CallOverrides): Promise<string>;
+
+  TIERKEY_EXPIRATION(overrides?: CallOverrides): Promise<BigNumber>;
 
   act(
     actParams: IDataMonetizer.ActParamsStruct,
@@ -981,7 +982,6 @@ export interface PyraZone extends BaseContract {
 
   createTierkey(
     assetId: BytesLike,
-    expiration: BigNumberish,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1014,6 +1014,11 @@ export interface PyraZone extends BaseContract {
   getDomainSeparator(overrides?: CallOverrides): Promise<string>;
 
   getSigNonce(signer: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  getSkimStatus(
+    assetId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<IPyraZone.SkimStatusStructOutput>;
 
   getTierkeyPrice(
     assetId: BytesLike,
@@ -1104,6 +1109,11 @@ export interface PyraZone extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  skim(
+    assetId: BytesLike,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
@@ -1134,15 +1144,9 @@ export interface PyraZone extends BaseContract {
   ): Promise<void>;
 
   callStatic: {
-    BASE_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    OWNER_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    PROTOCOL_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<string>;
-
     PYRA_MARKET(overrides?: CallOverrides): Promise<string>;
+
+    TIERKEY_EXPIRATION(overrides?: CallOverrides): Promise<BigNumber>;
 
     act(
       actParams: IDataMonetizer.ActParamsStruct,
@@ -1187,7 +1191,6 @@ export interface PyraZone extends BaseContract {
 
     createTierkey(
       assetId: BytesLike,
-      expiration: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -1223,6 +1226,11 @@ export interface PyraZone extends BaseContract {
     getDomainSeparator(overrides?: CallOverrides): Promise<string>;
 
     getSigNonce(signer: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSkimStatus(
+      assetId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<IPyraZone.SkimStatusStructOutput>;
 
     getTierkeyPrice(
       assetId: BytesLike,
@@ -1312,6 +1320,8 @@ export interface PyraZone extends BaseContract {
       approved: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    skim(assetId: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -1416,6 +1426,21 @@ export interface PyraZone extends BaseContract {
     "EIP712DomainChanged()"(): EIP712DomainChangedEventFilter;
     EIP712DomainChanged(): EIP712DomainChangedEventFilter;
 
+    "Skimed(bytes32,address,uint256,address,uint256)"(
+      assetId?: BytesLike | null,
+      revenuePool?: string | null,
+      skimAt?: null,
+      skimmer?: null,
+      skimAmount?: null
+    ): SkimedEventFilter;
+    Skimed(
+      assetId?: BytesLike | null,
+      revenuePool?: string | null,
+      skimAt?: null,
+      skimmer?: null,
+      skimAmount?: null
+    ): SkimedEventFilter;
+
     "TierkeyBought(bytes32,uint256,uint256,uint256,address,uint256)"(
       assetId?: BytesLike | null,
       tier?: BigNumberish | null,
@@ -1495,15 +1520,9 @@ export interface PyraZone extends BaseContract {
   };
 
   estimateGas: {
-    BASE_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    OWNER_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    PROTOCOL_FEE_POINT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<BigNumber>;
-
     PYRA_MARKET(overrides?: CallOverrides): Promise<BigNumber>;
+
+    TIERKEY_EXPIRATION(overrides?: CallOverrides): Promise<BigNumber>;
 
     act(
       actParams: IDataMonetizer.ActParamsStruct,
@@ -1548,7 +1567,6 @@ export interface PyraZone extends BaseContract {
 
     createTierkey(
       assetId: BytesLike,
-      expiration: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1569,6 +1587,11 @@ export interface PyraZone extends BaseContract {
     getDomainSeparator(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSigNonce(signer: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSkimStatus(
+      assetId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getTierkeyPrice(
       assetId: BytesLike,
@@ -1662,6 +1685,11 @@ export interface PyraZone extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    skim(
+      assetId: BytesLike,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -1696,17 +1724,11 @@ export interface PyraZone extends BaseContract {
   };
 
   populateTransaction: {
-    BASE_FEE_POINT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    PYRA_MARKET(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    OWNER_FEE_POINT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    PROTOCOL_FEE_POINT(
+    TIERKEY_EXPIRATION(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    PROTOCOL_TREASURY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    PYRA_MARKET(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     act(
       actParams: IDataMonetizer.ActParamsStruct,
@@ -1754,7 +1776,6 @@ export interface PyraZone extends BaseContract {
 
     createTierkey(
       assetId: BytesLike,
-      expiration: BigNumberish,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -1781,6 +1802,11 @@ export interface PyraZone extends BaseContract {
 
     getSigNonce(
       signer: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getSkimStatus(
+      assetId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1873,6 +1899,11 @@ export interface PyraZone extends BaseContract {
     setApprovalForAll(
       operator: string,
       approved: boolean,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    skim(
+      assetId: BytesLike,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 

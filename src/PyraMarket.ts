@@ -1,21 +1,25 @@
 import { BigNumberish, Signer, ethers } from "ethers";
 import { Connector, SYSTEM_CALL } from "@meteor-web3/connector";
 
-import { DataAssetBase } from "@pyra-marketplace/assets-sdk/data-asset";
 import {
+  PublisherDailyRecordRes,
+  PublisherProfileRes,
   PyraMarketRes,
   PyraMarketShareActivityRes,
+  PyraMarketShareHolderPortfolioRes,
   PyraMarketShareHolderRes,
+  ShareInfo,
   WatchlistRes
 } from "./types";
 import { PyraMarket__factory } from "./abi/typechain";
-import { DEPLOYED_ADDRESSES } from "./configs";
+import { DEPLOYED_ADDRESSES, RPC } from "./configs";
 import { http } from "./utils";
 import { retryRPC } from "./utils/retryRPC";
 import { switchNetwork } from "./utils/network";
 
-export class PyraMarket extends DataAssetBase {
+export class PyraMarket {
   pyraMarket;
+  pyraMarketAddress: string;
   chainId?: number;
   connector: Connector;
   signer?: Signer;
@@ -27,32 +31,36 @@ export class PyraMarket extends DataAssetBase {
     chainId?: number;
     connector: Connector;
   }) {
-    super({
-      chainId,
-      connector
-    });
-    const provider = connector.getProvider();
-    const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
-    this.signer = ethersProvider.getSigner();
-    this.chainId = chainId;
-    this.connector = connector;
-    this.assetContract =
+    this.pyraMarketAddress =
       DEPLOYED_ADDRESSES[chainId as keyof typeof DEPLOYED_ADDRESSES]
         ?.PyraMarket;
-    this.pyraMarket = PyraMarket__factory.connect(
-      this.assetContract,
-      this.signer
-    );
+
+    this.chainId = chainId;
+    this.connector = connector;
+    try {
+      const provider = connector.getProvider();
+      const ethersProvider = new ethers.providers.Web3Provider(provider, "any");
+      this.signer = ethersProvider.getSigner();
+      this.pyraMarket = PyraMarket__factory.connect(
+        this.pyraMarketAddress,
+        this.signer
+      );
+    } catch (error) {
+      const rpcList = RPC[chainId as keyof typeof RPC];
+      const provider = new ethers.providers.JsonRpcProvider(rpcList[0]);
+      this.pyraMarket = PyraMarket__factory.connect(
+        this.pyraMarketAddress,
+        provider
+      );
+    }
   }
 
   public async createShare({
     shareName,
-    shareSymbol,
-    feePoint
+    shareSymbol
   }: {
     shareName: string;
     shareSymbol: string;
-    feePoint: BigNumberish;
   }) {
     if (!this.chainId) {
       throw new Error(
@@ -62,11 +70,7 @@ export class PyraMarket extends DataAssetBase {
 
     await switchNetwork({ connector: this.connector, chainId: this.chainId });
 
-    const tx = await this.pyraMarket.createShare(
-      shareName,
-      shareSymbol,
-      feePoint
-    );
+    const tx = await this.pyraMarket.createShare(shareName, shareSymbol);
     const receipt = await tx.wait();
     const targetEvents = receipt.events?.filter(
       (e: any) => e.event === "ShareCreated"
@@ -77,6 +81,29 @@ export class PyraMarket extends DataAssetBase {
     const shareAddress: string = targetEvents[0].args[1];
     const revenuePoolAddress: string = targetEvents[0].args[2];
     return { shareAddress, revenuePoolAddress };
+  }
+
+  public async loadShareBalance({
+    shareAddress,
+    address
+  }: {
+    shareAddress: string;
+    address: string;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const balance = await retryRPC({
+      chainId: this.chainId,
+      contractFactory: "share__factory",
+      contractAddress: shareAddress,
+      method: "balanceOf",
+      params: [address]
+    });
+    return balance;
   }
 
   public async loadBuyPrice({
@@ -92,16 +119,10 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.pyraMarketAddress,
       method: "getBuyPrice",
       params: [creator, amount]
     });
@@ -122,16 +143,10 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-
     const price = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.pyraMarketAddress,
       method: "getSellPrice",
       params: [creator, amount]
     });
@@ -152,9 +167,33 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
+    await this.connector.getProvider().request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: `0x${this.chainId.toString(16)}` }]
+    });
+
+    const totalPrice = await this.pyraMarket.getBuyPriceAfterFee(
+      creator,
+      amount
+    );
+
+    const tx = await this.pyraMarket.buyShares(creator, amount, {
+      value: totalPrice
+    });
+
+    await tx.wait();
+  }
+
+  public async buyAndStakeShares({
+    creator,
+    amount
+  }: {
+    creator: string;
+    amount: BigNumberish;
+  }) {
+    if (!this.chainId) {
       throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
+        "ChainId cannot be empty, please pass in through constructor"
       );
     }
 
@@ -168,7 +207,7 @@ export class PyraMarket extends DataAssetBase {
       amount
     );
 
-    const tx = await this.pyraMarket.buyShares(creator, amount, {
+    const tx = await this.pyraMarket.buyAndStakeShares(creator, amount, {
       value: totalPrice
     });
 
@@ -195,6 +234,26 @@ export class PyraMarket extends DataAssetBase {
     await tx.wait();
   }
 
+  public async unstakeAndSellShares({
+    creator,
+    amount
+  }: {
+    creator: string;
+    amount: BigNumberish;
+  }) {
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+
+    await switchNetwork({ connector: this.connector, chainId: this.chainId });
+
+    const tx = await this.pyraMarket.unstakeAndSellShares(creator, amount);
+
+    await tx.wait();
+  }
+
   public async loadShareInfo(creator: string) {
     if (!this.chainId) {
       throw new Error(
@@ -202,26 +261,14 @@ export class PyraMarket extends DataAssetBase {
       );
     }
 
-    if (!this.assetContract) {
-      throw new Error(
-        "AssetContract cannot be empty, please pass in through constructor"
-      );
-    }
-
-    const shareInfo = await retryRPC({
+    const shareInfo: ShareInfo = await retryRPC({
       chainId: this.chainId,
       contractFactory: "pyraMarket__factory",
-      assetContract: this.assetContract,
+      contractAddress: this.pyraMarketAddress,
       method: "getShareInfo",
       params: [creator]
     });
-
-    return {
-      revenuePool: shareInfo.revenuePool,
-      shareAddress: shareInfo.share,
-      feePoint: shareInfo.feePoint,
-      totalValue: shareInfo.totalValue
-    };
+    return shareInfo;
   }
 
   public async loadTotalSupply(shareAddress: string) {
@@ -234,7 +281,7 @@ export class PyraMarket extends DataAssetBase {
     const totalSupply = await retryRPC({
       chainId: this.chainId,
       contractFactory: "share__factory",
-      assetContract: shareAddress,
+      contractAddress: shareAddress,
       method: "totalSupply",
       params: []
     });
@@ -242,13 +289,64 @@ export class PyraMarket extends DataAssetBase {
     return totalSupply;
   }
 
+  static async updatePublisherProfile({
+    publisher,
+    coverImageUrl,
+    nickName,
+    connector
+  }: {
+    publisher: string;
+    coverImageUrl?: string;
+    nickName?: string;
+    connector: Connector;
+  }) {
+    const codeRes: any = await http.request({
+      url: "code",
+      method: "post"
+    });
+    const sigObj = await connector.runOS({
+      method: SYSTEM_CALL.signWithSessionKey,
+      params: {
+        code: codeRes.code,
+        requestPath: `/api/v1/pyra-marketplace/publisher/profile`
+      }
+    });
+    const { siweMessage, jws } = sigObj;
+    return http.request({
+      url: "pyra-marketplace/publisher/profile",
+      method: "post",
+      params: {
+        publisher,
+        cover_image_url: coverImageUrl,
+        nick_name: nickName
+      },
+      headers: {
+        Authorization: `Bearer ${(jws as any).signatures[0].protected}.${
+          (jws as any).payload
+        }.${(jws as any).signatures[0].signature}`,
+        "x-pyra-siwe": btoa(JSON.stringify(siweMessage))
+      }
+    });
+  }
+
+  static async loadPublisherProfile(publisher: string) {
+    const publisherProfile: PublisherProfileRes = (
+      await http.request({
+        url: "pyra-marketplace/publisher/profile",
+        method: "get",
+        params: {
+          publisher
+        }
+      })
+    ).data;
+    return publisherProfile;
+  }
+
   static async watch({
-    chainId,
     watcher,
     publisher,
     connector
   }: {
-    chainId?: number;
     watcher: string;
     publisher: string;
     connector: Connector;
@@ -261,14 +359,12 @@ export class PyraMarket extends DataAssetBase {
       method: SYSTEM_CALL.signWithSessionKey,
       params: {
         code: codeRes.code,
-        requestPath: `/api/v1/${
-          chainId || "*"
-        }/pyra-marketplace/watch-list/watch`
+        requestPath: `/api/v1/pyra-marketplace/watch-list/watch`
       }
     });
     const { siweMessage, jws } = sigObj;
     return http.request({
-      url: `${chainId || "*"}/pyra-marketplace/watch-list/watch`,
+      url: "pyra-marketplace/watch-list/watch",
       method: "post",
       params: {
         watcher,
@@ -284,12 +380,10 @@ export class PyraMarket extends DataAssetBase {
   }
 
   static async unwatch({
-    chainId,
     watcher,
     publisher,
     connector
   }: {
-    chainId?: number;
     watcher: string;
     publisher: string;
     connector: Connector;
@@ -302,14 +396,12 @@ export class PyraMarket extends DataAssetBase {
       method: SYSTEM_CALL.signWithSessionKey,
       params: {
         code: codeRes.code,
-        requestPath: `/api/v1/${
-          chainId || "*"
-        }/pyra-marketplace/watch-list/unwatch`
+        requestPath: `/api/v1/pyra-marketplace/watch-list/unwatch`
       }
     });
     const { siweMessage, jws } = sigObj;
     return http.request({
-      url: `${chainId || "*"}/pyra-marketplace/watch-list/unwatch`,
+      url: "pyra-marketplace/watch-list/unwatch",
       method: "post",
       params: {
         watcher,
@@ -326,6 +418,8 @@ export class PyraMarket extends DataAssetBase {
 
   static async loadPyraMarkets({
     chainId,
+    share,
+    publisher,
     publishers,
     page,
     pageSize,
@@ -333,7 +427,9 @@ export class PyraMarket extends DataAssetBase {
     orderType
   }: {
     chainId?: number;
-    publishers: string[];
+    share?: string;
+    publisher?: string;
+    publishers?: string[];
     page?: number;
     pageSize?: number;
     orderBy?:
@@ -346,10 +442,13 @@ export class PyraMarket extends DataAssetBase {
   }) {
     const pyraMarkets: PyraMarketRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-market`,
+        url: "pyra-marketplace/pyra-market",
         method: "get",
         params: {
-          publishers: publishers.join(","),
+          chain_id: chainId,
+          share,
+          publisher,
+          publishers: publishers?.join(","),
           page,
           page_size: pageSize,
           order_by: orderBy,
@@ -360,10 +459,37 @@ export class PyraMarket extends DataAssetBase {
     return pyraMarkets;
   }
 
+  static async loadTrendingPyraMarkets({
+    chainId,
+    days,
+    page,
+    pageSize
+  }: {
+    chainId?: number;
+    days?: number; // default=7 in backend
+    page?: number;
+    pageSize?: number;
+  }) {
+    const pyraMarkets: PyraMarketRes[] = (
+      await http.request({
+        url: "/pyra-marketplace/pyra-market/trending",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          days,
+          page,
+          page_size: pageSize
+        }
+      })
+    ).data;
+    return pyraMarkets;
+  }
+
   static async loadPyraMarketShareHolders({
     chainId,
     share,
     publisher,
+    shareholder,
     page,
     pageSize,
     orderBy,
@@ -372,6 +498,7 @@ export class PyraMarket extends DataAssetBase {
     chainId?: number;
     share?: string;
     publisher?: string;
+    shareholder?: string;
     page?: number;
     pageSize?: number;
     orderBy?: "total_amount";
@@ -379,11 +506,13 @@ export class PyraMarket extends DataAssetBase {
   }) {
     const shareHolders: PyraMarketShareHolderRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/holder`,
+        url: "pyra-marketplace/pyra-market/share/holder",
         method: "get",
         params: {
+          chain_id: chainId,
           share,
           publisher,
+          shareholder,
           page,
           page_size: pageSize,
           order_by: orderBy,
@@ -392,6 +521,32 @@ export class PyraMarket extends DataAssetBase {
       })
     ).data;
     return shareHolders;
+  }
+
+  static async loadPyraMarketShareHolderPortfolios({
+    chainId,
+    shareholder,
+    orderBy,
+    orderType
+  }: {
+    chainId?: number;
+    shareholder?: string;
+    orderBy?: "shares_price" | "update_at";
+    orderType?: "asc" | "desc";
+  }) {
+    const shareHolderPortfolios: PyraMarketShareHolderPortfolioRes = (
+      await http.request({
+        url: "pyra-marketplace/pyra-market/share/holder/portfolio",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          shareholder,
+          order_by: orderBy,
+          order_type: orderType
+        }
+      })
+    ).data;
+    return shareHolderPortfolios;
   }
 
   static async loadPyraMarketShareActivities({
@@ -413,9 +568,10 @@ export class PyraMarket extends DataAssetBase {
   }) {
     const shareActivities: PyraMarketShareActivityRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/pyra-market/share/activity`,
+        url: "pyra-marketplace/pyra-market/share/activity",
         method: "get",
         params: {
+          chain_id: chainId,
           share,
           publisher,
           page,
@@ -428,8 +584,30 @@ export class PyraMarket extends DataAssetBase {
     return shareActivities;
   }
 
-  static async loadWatchlist({
+  static async loadPublisherDailyRecordChart({
     chainId,
+    publisher,
+    days
+  }: {
+    chainId: number;
+    publisher: string;
+    days: number;
+  }) {
+    const dailyRecords: PublisherDailyRecordRes[] = (
+      await http.request({
+        url: "/pyra-marketplace/publisher/daily-record/chart",
+        method: "get",
+        params: {
+          chain_id: chainId,
+          publisher,
+          days
+        }
+      })
+    ).data;
+    return dailyRecords;
+  }
+
+  static async loadWatchlist({
     watcher,
     publisher,
     page,
@@ -437,7 +615,6 @@ export class PyraMarket extends DataAssetBase {
     orderBy,
     orderType
   }: {
-    chainId?: number;
     watcher?: string;
     publisher?: string;
     page?: number;
@@ -447,7 +624,7 @@ export class PyraMarket extends DataAssetBase {
   }) {
     const watchlist: WatchlistRes[] = (
       await http.request({
-        url: `${chainId || "*"}/pyra-marketplace/watch-list`,
+        url: "pyra-marketplace/watch-list",
         method: "get",
         params: {
           watcher,

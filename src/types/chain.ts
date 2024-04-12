@@ -1,9 +1,13 @@
 import { BigNumberish } from "ethers";
+import { RevenuePool } from "../abi/typechain/RevenuePool";
+import { IPyraMarket } from "../abi/typechain/PyraMarket";
 
 export enum ChainId {
   Polygon = 137,
   PolygonMumbai = 80001,
-  Ethereum = 1
+  Ethereum = 1,
+  Base = 8453,
+  BaseSepolia = 84532
 }
 
 export interface ZoneAsset {
@@ -11,11 +15,13 @@ export interface ZoneAsset {
   publicationId: BigNumberish;
   actions: string[];
   tierkeys: string[];
-  expirations: BigNumberish[];
-  totalValues: BigNumberish[];
 }
 
 export enum TradeType {
   Buy,
   Sell
 }
+
+export type ShareInfo = IPyraMarket.ShareInfoStruct;
+
+export type StakeStatus = RevenuePool.StakeStatusStruct;
