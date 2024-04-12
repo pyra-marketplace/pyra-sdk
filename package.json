@@ -1,6 +1,6 @@
 {
   "name": "@pyra-marketplace/pyra-sdk",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "license": "MIT",
   "files": [
     "/dist"
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@lit-protocol/constants": "^2.2.61",
-    "@pyra-marketplace/assets-sdk": "^1.0.11",
+    "@pyra-marketplace/assets-sdk": "^1.0.12",
     "axios": "^1.5.1",
     "ethers": "^5.7.2",
     "graphql": "16.6.0",
