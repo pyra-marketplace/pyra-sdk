@@ -22,5 +22,15 @@ export const RPC = {
     "https://polygon-mumbai.blockpi.network/v1/rpc/public",
     "https://rpc.ankr.com/polygon_mumbai",
     "https://polygon-mumbai-bor-rpc.publicnode.com"
+  ],
+  [ChainId.Base]: [
+    "https://base-rpc.publicnode.com",
+    "https://base.blockpi.network/v1/rpc/public",
+    "https://base.llamarpc.com"
+  ],
+  [ChainId.BaseSepolia]: [
+    "https://public.stackup.sh/api/v1/node/base-sepolia",
+    "https://base-sepolia.blockpi.network/v1/rpc/public",
+    "https://base-sepolia-rpc.publicnode.com"
   ]
 };
