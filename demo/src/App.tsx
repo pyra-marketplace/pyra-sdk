@@ -16,7 +16,7 @@ const appId = "e104c799-3cb6-4f4d-ba8a-16649cd9701a";
 const postModelId =
   "kjzl6hvfrbw6c8nivefcu4rozay0y3rzm8pomdsxl4abfc3n1rokft2m04flbd4";
 
-const chainId = ChainId.PolygonMumbai;
+const chainId = ChainId.BaseSepolia;
 
 const postVersion = "0.0.1";
 
