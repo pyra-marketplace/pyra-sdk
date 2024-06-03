@@ -517,7 +517,34 @@ function App() {
       tier
     });
     indexFileId = res.fileContent.file.fileId;
-    console.log(indexFileId);
+    console.log(res);
+  };
+
+  const createPublicFile = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      assetId,
+      connector
+    });
+
+    const date = new Date().toISOString();
+
+    const res = await pyraZone.createPublicFile({
+      modelId: postModelId,
+      fileName: "create a file",
+      fileContent: {
+        modelVersion: postVersion,
+        title: "test title",
+        description: "test description",
+        tags: ["test tag1", "test tag2"],
+        resources: [
+          "https://bafkreib76wz6wewtkfmp5rhm3ep6tf4xjixvzzyh64nbyge5yhjno24yl4.ipfs.w3s.link"
+        ],
+        createdAt: date,
+        updatedAt: date
+      }
+    });
+    console.log(res);
   };
 
   const buyTierkey = async () => {
@@ -692,6 +719,15 @@ function App() {
     console.log(res);
   };
 
+  const loadPublicFilesInPyraZone = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const res = await pyraZone.loadPublicFilesInPyraZone(assetId);
+    console.log(res);
+  };
+
   const loadFilesByTier = async () => {
     const pyraZone = new PyraZone({
       chainId,
@@ -727,6 +763,15 @@ function App() {
     const folderRecord = await pyraZone.loadFoldersInPyraZone(assetId);
     folderId = Object.values(folderRecord)?.[0]?.folderId;
     console.log(folderRecord);
+  };
+
+  const loadPublicFolderInPyraZone = async () => {
+    const pyraZone = new PyraZone({
+      chainId,
+      connector
+    });
+    const folder = await pyraZone.loadPublicFolderInPyraZone(assetId);
+    console.log(folder);
   };
 
   const loadFolderByTier = async () => {
@@ -804,6 +849,7 @@ function App() {
       <button onClick={() => createPyraZone()}>createPyraZone</button>
       <button onClick={() => createTierkey()}>createTierkey</button>
       <button onClick={() => createTierFile()}>createTierFile</button>
+      <button onClick={() => createPublicFile()}>createPublicFile</button>
       <button onClick={() => buyTierkey()}>buyTierkey</button>
       <button onClick={() => sellTierkey()}>sellTierkey</button>
       <button onClick={() => skim()}>skim</button>
@@ -828,8 +874,14 @@ function App() {
       <button onClick={() => loadFoldersInPyraZone()}>
         loadFoldersInPyraZone
       </button>
+      <button onClick={() => loadPublicFolderInPyraZone()}>
+        loadPublicFolderInPyraZone
+      </button>
       <button onClick={() => loadFolderByTier()}>loadFolderByTier</button>
       <button onClick={() => loadFilesInPyraZone()}>loadFilesInPyraZone</button>
+      <button onClick={() => loadPublicFilesInPyraZone()}>
+        loadPublicFilesInPyraZone
+      </button>
       <button onClick={() => unlockFolder()}>unlockFolder</button>
       <button onClick={() => unlockFile()}>unlockFile</button>
       <button onClick={() => loadFilesByTier()}>loadFilesByTier</button>

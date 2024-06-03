@@ -643,6 +643,85 @@ export class PyraZone extends DataAssetBase {
     return applyConditionsToFileRes;
   }
 
+  public async createPublicFile({
+    modelId,
+    fileName,
+    fileContent
+  }: {
+    modelId: string;
+    fileName?: string;
+    fileContent: FileContent;
+  }) {
+    if (!this.assetId) {
+      throw new Error(
+        "AssetId cannot be empty, please call createAssetHandler first"
+      );
+    }
+    if (!this.chainId) {
+      throw new Error(
+        "ChainId cannot be empty, please pass in through constructor"
+      );
+    }
+    if (!this.assetContract) {
+      throw new Error(
+        "AssetContract cannot be empty, please pass in through constructor"
+      );
+    }
+
+    const folders = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFolderTrees
+    });
+
+    const folder = Object.values(folders).find(
+      (folder) =>
+        folder.options?.signals?.find(
+          (signal) =>
+            signal.type === SignalType.asset && signal.id === this.assetId
+        ) &&
+        folder.options?.signals?.find(
+          (signal) => signal.type === SignalType.asset && signal.id === "public"
+        )
+    );
+
+    let folderId = folder?.folderId;
+
+    if (!folder) {
+      const res = await this.connector.runOS({
+        method: SYSTEM_CALL.createFolder,
+        params: {
+          folderName: `assetId:${this.assetId},public`,
+          folderType: FolderType.PublicFolderType,
+          signals: [
+            {
+              type: SignalType.asset,
+              id: this.assetId
+            },
+            {
+              type: SignalType.asset,
+              id: "public"
+            }
+          ]
+        }
+      });
+      folderId = res.newFolder.folderId;
+    }
+
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.createIndexFile,
+      params: {
+        modelId,
+        fileName,
+        fileContent: {
+          ...fileContent,
+          encrypted: fileContent.encrypted || "{}"
+        },
+        folderId
+      }
+    });
+
+    return res;
+  }
+
   public async addTierFile({ fileId, tier }: { fileId: string; tier: number }) {
     if (!this.assetId) {
       throw new Error(
@@ -750,6 +829,24 @@ export class PyraZone extends DataAssetBase {
     return folders;
   }
 
+  public async loadPublicFolderInPyraZone(pyraZoneId: string) {
+    if (!pyraZoneId) {
+      throw new Error("PyraZoneId cannot be empty");
+    }
+
+    const folders = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFoldersBy,
+      params: {
+        signals: [
+          { type: SignalType.asset, id: pyraZoneId },
+          { type: SignalType.asset, id: "public" }
+        ]
+      }
+    });
+
+    return Object.values(folders)?.[0] as StructuredFolder | undefined;
+  }
+
   public async loadFolderByTier(tier: number) {
     if (!tier && tier !== 0) {
       throw new Error("Tier cannot be empty");
@@ -774,6 +871,34 @@ export class PyraZone extends DataAssetBase {
     const res = await this.connector.runOS({
       method: SYSTEM_CALL.loadFoldersBy,
       params: { signals: [{ type: SignalType.asset, id: pyraZoneId }] }
+    });
+
+    return Object.assign(
+      {},
+      ...Object.values(res).map((item) =>
+        Object.fromEntries(
+          Object.values(item.mirrorRecord).map((mirror) => [
+            mirror.mirrorId,
+            mirror.mirrorFile
+          ])
+        )
+      )
+    ) as MirrorFileRecord;
+  }
+
+  public async loadPublicFilesInPyraZone(pyraZoneId: string) {
+    if (!pyraZoneId) {
+      throw new Error("PyraZoneId cannot be empty");
+    }
+
+    const res = await this.connector.runOS({
+      method: SYSTEM_CALL.loadFoldersBy,
+      params: {
+        signals: [
+          { type: SignalType.asset, id: pyraZoneId },
+          { type: SignalType.asset, id: "public" }
+        ]
+      }
     });
 
     return Object.assign(
